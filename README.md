@@ -6,12 +6,12 @@ For a live demo, visit [ZetoEngine2D author page](https://basiliogerman.com). Wo
 
 ## Getting started
 
-- Download the latest dist file from this repository and include it in your project. This can be found in the dist folder. Do not include the source files in your project. You must also include the license file in your project. The license file is located in the root of the repository.
-- Place `zeto.min.js` in your javascript folder or its own folder. your game files should be in the same folder as `zeto.min.js` or a subfolder.
-- ZetoEngine2D uses Matter.js for physics. You can include it in your project by including the `matter.min.js` file in your project. ZetoEngine2D uses version 0.19.0. Future versions might also work, but are not tested. If you do not include Matter.js, the engine will still work, but you will not be able to use physics. Matter.js should be loaded before `zeto.min.js`.
-- ZetoEngine2D will load any game files relative to the location of `zeto.min.js`. This means that if you have a file in a subfolder, you can include it in your game by using the path relative to `zeto.min.js`.
+- Download the latest js file from the src folder.
+- Place `zeto.js` in your javascript folder or its own folder. your game files should be in the same folder as `zeto.js` or a subfolder.
+- ZetoEngine2D uses Matter.js for physics. You can include it in your project by including the `matter.js` file in your project. ZetoEngine2D uses version 0.19.0. Future versions might also work, but are not tested. If you do not include Matter.js, the engine will still work, but you will not be able to use physics. Matter.js should be loaded before `zeto.js`.
+- ZetoEngine2D will load any game files relative to the location of `zeto.js`. This means that if you have a file in a subfolder, you can include it in your game by using the path relative to `zeto.js`.
 - Your HTML file should include a canvas element with the id `canvas`. This is where the game will be rendered. The engine will automatically resize the canvas to fit the window. You can also set the canvas size manually by setting the width and height attributes of the canvas element.
-- The following is an HTML template for your game. You can copy and paste this into your project and modify it as needed. This template loads the engine and the game files. The engine is started with the `new Engine()` call. The `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.min.js`. In this case, ZetoEngine2D would look for a file inside `/js/game/` called `main.js`.
+- The following is an HTML template for your game. You can copy and paste this into your project and modify it as needed. This template loads the engine and the game files. The engine is started with the `new Engine()` call. The `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. In this case, ZetoEngine2D would look for a file inside `/js/game/` called `main.js`.
 
 ```html
 <!DOCTYPE html>
@@ -24,7 +24,7 @@ For a live demo, visit [ZetoEngine2D author page](https://basiliogerman.com). Wo
   <body style="background-color: #000000;">
     <canvas id="canvas"></canvas>
     <script src="/js/libs/matter.js"></script>
-    <script src="/js/engine.js"></script>
+    <script src="/js/zeto.js"></script>
     <script>
       new ZetoEngine({ moduleName: "game.main", smoothing: true });
     </script>
@@ -206,7 +206,7 @@ The following functions are available in the Engine class.
  - engine.step()
  - engine.getInfo(property)
 
-When using `load` and `unload`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.min.js`. The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `load` will call the exported `create` function in the module, and `unload` will call the exported `destroy` function in the module.
+When using `load` and `unload`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `load` will call the exported `create` function in the module, and `unload` will call the exported `destroy` function in the module.
 
 The `loadedListener` and the `progressListener` function will be called when you call the `complete` and `progress` functions in the module. `unloadedListener` will be called when you call the `complete` function as well, but inside the `destroy` function. The `complete` and `progress` functions accept a function as a parameter, and this function will be called after the external `loadedListener`, `progressListener` or `unloadedListener` functions are called.
 
@@ -401,7 +401,7 @@ Thats right! You can animate values to other objects and numeric text properties
 
 ### Particle Engine
 
-The Particle Engine class is responsible for creating and managing particle systems. It can be accessed through the `engine.particle` property. You can use Particle Designer to create particle systems and export them to JSON. The following functions are available in the Particle Engine class. Please note that the Particle Engine is still in development and is subject to change. Color transitions are NOT supported yet.
+The Particle Engine class is responsible for creating and managing particle systems. It can be accessed through the `engine.particles` property. You can use Particle Designer to create particle systems and export them to JSON. The following functions are available in the Particle Engine class. Please note that the Particle Engine is still in development and is subject to change. Color transitions are NOT supported yet.
 
 The Particle engine has the following functions available:
 
