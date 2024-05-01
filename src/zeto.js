@@ -1890,14 +1890,23 @@ class ZetoEngine extends EventObject {
 		numAssets += audio ? audio.length : 0;
 		numAssets += data ? data.length : 0;
 
+		let loadedFromCache = {
+			image: {},
+			audio: {},
+			data: {},
+			unknown: {},
+		};
+
 		var numLoaded = 0;
 		function assetLoaded(event) {
 			var asset = event.target;
 			var type = asset.zType ?? 'unknown';
 
-			if (this.loadedIds[type][asset.id]) { // TODO: I don't like how this came out, maybe refactor
-				if (event.type != 'cachez') {
-					console.error('Loading fail - Duplicate ID and different filename' + type + ' ' + asset.id);
+			if (this.loadedIds[type][asset.id]) {
+				if (event.type != 'cache-z') {
+					if (loadedFromCache[type][asset.id] && loadedFromCache[type][asset.id].filename != asset.filename) {
+						console.error('Loading fail - Duplicate ID and different filename' + type + ' ' + asset.id);
+					}
 				} else {
 					this.loadedIds[type][asset.id] = false;
 				}
@@ -1906,6 +1915,10 @@ class ZetoEngine extends EventObject {
 			if (!this.loadedIds[type][asset.id]) {
 				this.loadedIds[type][asset.id] = event.type ?? true;
 				numLoaded++;
+
+				if (event.type == 'cache-z') {
+					loadedFromCache[type][asset.id] = asset;
+				}
 
 				if (onProgress) {
 					var onProgressEvent = {
@@ -1940,7 +1953,7 @@ class ZetoEngine extends EventObject {
 
 					this.loadedImages[element.id] = element;
 					if (element.image.complete) { // Is in cache
-						assetLoadedBind({ target: element.image, type: 'cachez' }); // Avoid dupe warning
+						assetLoadedBind({ target: element.image, type: 'cache-z' }); // Avoid dupe warning
 					}
 				}
 			});
