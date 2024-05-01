@@ -728,6 +728,8 @@ class Button extends Group {
 				this.#build9FrameView(this.pressedGroup, sheet.image, options.width, sheet.frameData[3], sheet.frameData[4], sheet.frameData[5]);
 				this.#build9FrameView(this.disabledGroup, sheet.image, options.width, sheet.frameData[6], sheet.frameData[7], sheet.frameData[8]);
 			}
+		} else if (options.shape) {
+			this.#buildShapeView(options);
 		}
 
 		var labelOptions = {
@@ -741,10 +743,45 @@ class Button extends Group {
 		this.label = new TextObject(this.engine, labelOptions);
 		this.label.anchorX = options.labelAnchorX ?? 0.5;
 		this.label.anchorY = options.labelAnchorY ?? 0.5;
-		this.label.fillColor = this.labelColor;
+		this.label.fillColor = options.labelColor ?? this.engine.fillColor;
 		this.insert(this.label);
 
 		this.updateBounds();
+	}
+
+	#buildShapeView(options) {
+		const { shape, width, height, radius, fillColor, strokeColor, strokeWidth } = options;
+		
+		let defaultShape, pressedShape, disabledShape;
+
+		switch (shape) {
+			case 'roundedRect':
+				defaultShape = this.engine.newRoundedRect(0, 0, width, height, radius);
+				pressedShape = this.engine.newRoundedRect(0, 0, width, height, radius);
+				disabledShape = this.engine.newRoundedRect(0, 0, width, height, radius);
+				break;
+			case 'circle':
+				defaultShape = this.engine.newCircle(0, 0, radius);
+				pressedShape = this.engine.newCircle(0, 0, radius);
+				disabledShape = this.engine.newCircle(0, 0, radius);
+				break;
+			default:
+				defaultShape = this.engine.newRect(0, 0, width, height);
+				pressedShape = this.engine.newRect(0, 0, width, height);
+				disabledShape = this.engine.newRect(0, 0, width, height);
+				break;
+		}
+
+		this.#buildShape(this.defaultGroup, defaultShape, fillColor.default, strokeColor.default, strokeWidth);
+		this.#buildShape(this.pressedGroup, pressedShape, fillColor.over, strokeColor.over, strokeWidth);
+		this.#buildShape(this.disabledGroup, disabledShape, fillColor.disabled, strokeColor.disabled, strokeWidth);
+	}
+
+	#buildShape(group, shape, fillColor, strokeColor, strokeWidth) {
+		shape.fillColor = fillColor ?? this.fillColor;
+		shape.stroke = strokeColor ?? this.strokeColor;
+		shape.strokeWidth = strokeWidth ?? 2;
+		group.insert(shape);
 	}
 
 	#build3FrameView(group, sheetImage, frameData) {
