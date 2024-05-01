@@ -464,6 +464,7 @@ class TextObject extends EngineObject {
 		this.values.textString = String(options.text) ?? '';
 		this.values.width = options.width ?? 0;
 		this.values.contextFont = this.values.fontSize + 'px ' + this.values.fontName;
+		this.values.spacing = options.spacing ?? 0.5;
 
 		this.align = options.align ?? 'center';
 
