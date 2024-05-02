@@ -25,8 +25,8 @@ const radianMultiplier = Math.PI / 180;
 const degreeMultiplier = 180 / Math.PI;
 const disableTests = true;
 ///////////////////////////////////////////// Helpers
-const isGroup = (object) => { return object instanceof Group; };
-const isTransition = (object) => { return object instanceof Transition; };
+const isGroup = (object) => { return object instanceof ZetoGroup; };
+const isTransition = (object) => { return object instanceof ZetoTransition; };
 const mathCos = Math.cos;
 const mathSin = Math.sin;
 const pi = Math.PI;
@@ -50,7 +50,7 @@ const mComposite = Matter?.Composite ?? undefined;
 const mVertices = Matter?.Vertices ?? undefined;
 const mEvents = Matter?.Events ?? undefined;
 ///////////////////////////////////////////// Objects
-class EventObject {
+class ZetoEventObject {
 	listeners = {
 		finalize: [],
 	};
@@ -101,7 +101,7 @@ class EventObject {
 	}
 }
 
-class EngineObject extends EventObject {
+class ZetoEngineObject extends ZetoEventObject {
 	listeners = {
 		tap: [],
 		touch: [],
@@ -163,7 +163,7 @@ class EngineObject extends EventObject {
 	engine;
 	strokeWidth = 0;
 	stroke;
-	path = new EnginePath();
+	path = new ZetoEnginePath();
 
 	hover = false;
 
@@ -440,7 +440,7 @@ class EngineObject extends EventObject {
 	}
 }
 
-class TextObject extends EngineObject {
+class ZetoTextObject extends ZetoEngineObject {
 	values = { // Since internal is taken by EngineObject
 		fontName: 'Arial',
 		fontSize: 20,
@@ -587,13 +587,13 @@ class TextObject extends EngineObject {
 		var top = -totalHeight * 0.5;
 
 		if (newPath) {
-			this.path = new EnginePath();
+			this.path = new ZetoEnginePath();
 		}
 		this.path.rect(left, top, width, totalHeight);
 	}
 }
 
-class Group extends EngineObject {
+class ZetoGroup extends ZetoEngineObject {
 	children = [];
 	anchorChildren = false;
 
@@ -669,7 +669,113 @@ class Group extends EngineObject {
 	}
 }
 
-class Button extends Group {
+class ZetoStrings extends ZetoEventObject {
+	strings = [
+		{ en: {} },
+		{ es: {} },
+	];
+	engine;
+	locale = 'en';
+
+	listeners = {
+		locale: [],
+	};
+
+	constructor(engine) {
+		super();
+		this.engine = engine;
+	}
+
+	setLocale(locale) {
+		this.locale = locale;
+		this.dispatchEvent('locale', { target: this, locale: locale });
+	}
+
+	add(strings) {
+		for (var locale in strings) {
+			if (!this.strings[locale]) {
+				this.strings[locale] = {};
+			}
+			for (var key in strings[locale]) {
+				this.strings[locale][key] = strings[locale][key];
+			}
+		}
+	}
+
+	get(key, replace) {
+		let string = this.strings[this.locale][key] || key;
+		if (replace && typeof replace === "object") {
+			Object.keys(replace).forEach((key) => {
+				const placeholder = `:${key}`;
+				const value = replace[key];
+				string = string.replace(new RegExp(placeholder, "g"), value);
+			});
+		}
+		return string;
+	}
+}
+
+class ZetoWidgets extends ZetoEventObject {
+	widgets = {
+		default: [],
+	};
+	enabled = {
+		default: true,
+	};
+	engine;
+
+	listeners = {
+		enabled: [],
+	};
+
+	constructor(engine) {
+		super();
+		this.engine = engine;
+	}
+	
+	newButton(options) {
+		let button = new ZetoButton(this.engine, options);
+		button.addEventListener('finalize', (event) => {
+			let tag = event.target.tag;
+			let index = this.widgets[tag].indexOf(event.target);
+			if (index > -1) {
+				this.widgets[tag].splice(index, 1);
+			}
+		});
+
+		let tag = options.tag ?? 'default';
+		this.widgets[tag] = this.widgets[tag] ?? [];
+		this.widgets[tag].push(button);
+		this.enabled[tag] = this.enabled[tag] ?? true;
+		button.setEnabled(this.enabled[tag]);
+		return this.engine.rootGroup.insert(button, true);
+	}
+
+	setEnabled(enabled, tag = 'default') {
+		this.enabled[tag] = enabled;
+		for (var index = 0; index < this.widgets[tag].length; index++) {
+			var widget = this.widgets[tag][index];
+			widget.setEnabled(enabled);
+		}
+		this.dispatchEvent('enabled', { target: this, enabled: enabled, tag: tag });
+	}
+}
+
+class ZetoWidget extends ZetoGroup {
+	tag;
+	enabled = true;
+
+	constructor(engine, x = 0, y = 0, tag = 'default') {
+		super(engine, x, y);
+		this.tag = tag;
+	}
+
+	setEnabled(enabled) {
+		this.enabled = enabled;
+	}
+}
+
+class ZetoButton extends ZetoWidget {
 	defaultGroup;
 	pressedGroup;
 	disabledGroup;
@@ -681,11 +787,10 @@ class Button extends Group {
 	label;
 	tapTimestamp = -300;
 
-	enabled = true;
 	holding = false;
 
 	constructor(engine, options = {}) {
-		super(engine, options.x, options.y);
+		super(engine, options.x, options.y, options.tag);
 
 		this.anchorChildren = true;
 
@@ -741,7 +846,7 @@ class Button extends Group {
 			text: options.label,
 			align: options.labelAlign
 		};
-		this.label = new TextObject(this.engine, labelOptions);
+		this.label = new ZetoTextObject(this.engine, labelOptions);
 		this.label.anchorX = options.labelAnchorX ?? 0.5;
 		this.label.anchorY = options.labelAnchorY ?? 0.5;
 		this.label.fillColor = options.labelColor ?? this.engine.fillColor;
@@ -872,18 +977,14 @@ class Button extends Group {
 				if (this.onPressListener) {
 					this.onPressListener(event);
 				}
-				if (this.onHoldListener) {
-					this.holding = this.engine.frameEvent.frame;
-					this.#setPressedView(true);
-				}
+				this.holding = this.engine.frameEvent.frame;
+				this.#setPressedView(true);
 			} else if (event.phase == 'ended') {
 				if (this.onReleaseListener) {
 					this.onReleaseListener(event);
 				}
 				this.holding = false;
-				if (this.onHoldListener) {
-					this.#setPressedView(false);
-				}
+				this.#setPressedView(false);
 			}
 		}
 		return true;
@@ -900,7 +1001,7 @@ class Button extends Group {
 	}
 }
 
-class Sprite extends EngineObject {
+class ZetoSprite extends ZetoEngineObject {
 	imageSheet;
 	sequenceData;
 
@@ -975,7 +1076,7 @@ class Sprite extends EngineObject {
 	}
 }
 
-class Camera extends Group {
+class ZetoCamera extends ZetoGroup {
 
 	targetRotation = 0;
 	focusAngle = 0;
@@ -1102,7 +1203,7 @@ class Camera extends Group {
 	}
 }
 ///////////////////////////////////////////// Engine
-class ZetoEngine extends EventObject {
+class ZetoEngine extends ZetoEventObject {
 	debug = false;
 
 	listeners = {
@@ -1173,6 +1274,8 @@ class ZetoEngine extends EventObject {
 	physics;
 	particles;
 	transition;
+	widgets;
+	strings;
 
 	timers = [];
 
@@ -1196,10 +1299,12 @@ class ZetoEngine extends EventObject {
 		var progressListener = options.progressListener ?? false
 		var smoothing = options.smoothing ?? false;
 
-		this.rootGroup = new Group(this);
-		this.physics = new PhysicsEngine(this);
-		this.particles = new ParticleEngine(this);
-		this.transition = new TransitionEngine(this);
+		this.rootGroup = new ZetoGroup(this);
+		this.physics = new ZetoPhysicsEngine(this);
+		this.particles = new ZetoParticleEngine(this);
+		this.transition = new ZetoTransitionEngine(this);
+		this.widgets = new ZetoWidgets(this);
+		this.strings = new ZetoStrings(this);
 
 		window.addEventListener('visibilitychange', this.visibilityChange.bind(this));
 
@@ -1763,17 +1868,17 @@ class ZetoEngine extends EventObject {
 	}
 
 	newGroup(x, y) {
-		var group = new Group(this, x, y);
+		var group = new ZetoGroup(this, x, y);
 		return this.rootGroup.insert(group, true);
 	}
 
 	newCamera(x, y) {
-		var camera = new Camera(this, x, y);
+		var camera = new ZetoCamera(this, x, y);
 		return this.rootGroup.insert(camera, true);
 	}
 
 	newText(options) {
-		var textObject = new TextObject(this, options);
+		var textObject = new ZetoTextObject(this, options);
 		return this.rootGroup.insert(textObject, true);
 	}
 
@@ -1802,31 +1907,31 @@ class ZetoEngine extends EventObject {
 	}
 
 	newCircle(x, y, radius) {
-		var criclePath = new EnginePath();
+		var criclePath = new ZetoEnginePath();
 		criclePath.arc(0, 0, radius, 0, 2 * pi, false);
 
-		var circle = new EngineObject(this, criclePath, x, y);
+		var circle = new ZetoEngineObject(this, criclePath, x, y);
 		return this.rootGroup.insert(circle, true);
 	}
 
 	newRoundedRect(x, y, width, height, radius) {
-		var roundedRectPath = new EnginePath();
+		var roundedRectPath = new ZetoEnginePath();
 		roundedRectPath.roundRect(-width * 0.5, -height * 0.5, width, height, radius);
 
-		var roundedRect = new EngineObject(this, roundedRectPath, x, y);
+		var roundedRect = new ZetoEngineObject(this, roundedRectPath, x, y);
 		return this.rootGroup.insert(roundedRect, true);
 	}
 
 	newRect(x, y, width, height) {
-		var rectPath = new EnginePath();
+		var rectPath = new ZetoEnginePath();
 		rectPath.rect(-width * 0.5, -height * 0.5, width, height);
 
-		var rect = new EngineObject(this, rectPath, x, y);
+		var rect = new ZetoEngineObject(this, rectPath, x, y);
 		return this.rootGroup.insert(rect, true);
 	}
 
 	newPolygon(x, y, vertices) {
-		var polygonPath = new EnginePath();
+		var polygonPath = new ZetoEnginePath();
 		for (var vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
 			var vertex = vertices[vertexIndex];
 			if (vertexIndex == 0) {
@@ -1837,7 +1942,7 @@ class ZetoEngine extends EventObject {
 		}
 		polygonPath.closePath();
 
-		var polygon = new EngineObject(this, polygonPath, x, y);
+		var polygon = new ZetoEngineObject(this, polygonPath, x, y);
 		return this.rootGroup.insert(polygon, true);
 	}
 
@@ -1874,13 +1979,8 @@ class ZetoEngine extends EventObject {
 	}
 
 	newSprite(imageSheet, sequenceData, x = 0, y = 0) {
-		var sprite = new Sprite(this, imageSheet, sequenceData, x, y);
+		var sprite = new ZetoSprite(this, imageSheet, sequenceData, x, y);
 		return this.rootGroup.insert(sprite, true);
-	}
-
-	newButton(options) {
-		var button = new Button(this, options);
-		return this.rootGroup.insert(button, true);
 	}
 
 	getImageFill(id) {
@@ -1918,7 +2018,7 @@ class ZetoEngine extends EventObject {
 				audio.decoding = false;
 			}
 
-			return new EngineAudio(this, audio.zBuffer, volume, time, loop, onComplete);
+			return new ZetoEngineAudio(this, audio.zBuffer, volume, time, loop, onComplete);
 		}
 	}
 
@@ -2111,7 +2211,7 @@ class ZetoEngine extends EventObject {
 	}
 }
 
-class EngineAudio {
+class ZetoEngineAudio {
 	bufferSource;
 	gainNode;
 	onComplete;
@@ -2130,6 +2230,7 @@ class EngineAudio {
 
 		this.bufferSource = bufferSource;
 		this.gainNode = gainNode;
+		this.onComplete = onComplete;
 	}
 
 	onended(event) {
@@ -2168,7 +2269,7 @@ class EngineAudio {
 	}
 }
 
-class EnginePath {
+class ZetoEnginePath {
 	path = new Path2D();
 	x = 0;
 	y = 0;
@@ -2247,7 +2348,7 @@ class EnginePath {
 	}
 }
 ///////////////////////////////////////////// Particles
-class ParticleEngine extends EventObject {
+class ZetoParticleEngine extends ZetoEventObject {
 	static particleTypeGravity = 0;
 	static particleTypeRadial = 1;
 
@@ -2410,7 +2511,7 @@ class ParticleEngine extends EventObject {
 			return false;
 		}
 
-		var particle = new Particle(emitter);
+		var particle = new ZetoParticle(emitter);
 		emitter.particles.push(particle);
 		this.initParticle(emitter, particle);
 
@@ -2497,13 +2598,13 @@ class ParticleEngine extends EventObject {
 	}
 
 	newEmitter(emitterParams) {
-		var emitter = new Emitter(this.engine, emitterParams);
+		var emitter = new ZetoEmitter(this.engine, emitterParams);
 		this.emitters.push(emitter);
 		return this.engine.rootGroup.insert(emitter, true);
 	}
 }
 
-class Particle {
+class ZetoParticle {
 	image;
 
 	position = {
@@ -2550,7 +2651,7 @@ class Particle {
 	}
 }
 
-class Emitter extends Group {
+class ZetoEmitter extends ZetoGroup {
 	particleEngine;
 
 	emitterType = ParticleEngine.particleTypeGravity;
@@ -2647,7 +2748,7 @@ class Emitter extends Group {
 	}
 }
 ///////////////////////////////////////////// Transitions
-class Easing {
+class ZetoEasing {
 	static linear(t, tMax, start, delta) {
 		return delta * t / tMax + start;
 	}
@@ -2709,7 +2810,9 @@ class Easing {
 	}
 }
 
-class TransitionEngine extends EventObject {
+class Easing extends ZetoEasing { }
+
+class ZetoTransitionEngine extends ZetoEventObject {
 	engine;
 	transitions = [];
 
@@ -2777,7 +2880,7 @@ class TransitionEngine extends EventObject {
 			}
 		}
 
-		var transition = new Transition(object, params.delay, params.time, params.easing, params.onStart, params.onComplete, targetValues);
+		var transition = new ZetoTransition(object, params.delay, params.time, params.easing, params.onStart, params.onComplete, targetValues);
 		this.transitions.push(transition);
 		if (!object.transitions) {
 			object.transitions = [];
@@ -2796,7 +2899,7 @@ class TransitionEngine extends EventObject {
 			}
 		}
 
-		var transition = new Transition(object, params.delay, params.time, params.easing, params.onStart, params.onComplete, targetValues, fromValues);
+		var transition = new ZetoTransition(object, params.delay, params.time, params.easing, params.onStart, params.onComplete, targetValues, fromValues);
 		this.transitions.push(transition);
 		if (!object.transitions) {
 			object.transitions = [];
@@ -2817,7 +2920,7 @@ class TransitionEngine extends EventObject {
 	}
 }
 
-class Transition {
+class ZetoTransition {
 	id;
 	target;
 	easing;
@@ -2875,7 +2978,7 @@ class Transition {
 	}
 }
 ///////////////////////////////////////////// Physics
-class PhysicsEngine extends EventObject {
+class ZetoPhysicsEngine extends ZetoEventObject {
 	paused = true;
 
 	debugColor = '#FF880022';
@@ -2886,6 +2989,10 @@ class PhysicsEngine extends EventObject {
 	bodies = [];
 
 	maxDelta = 1000 / 30;
+
+	listeners = {
+		collision: [],
+	};
 
 	constructor(engine) {
 		super();
@@ -2926,6 +3033,7 @@ class PhysicsEngine extends EventObject {
 			if (bodyB.hasEventListener('collision')) {
 				bodyB.dispatchEvent('collision', { phase: phase, target: bodyB, other: bodyA, collision: pair.collision });
 			}
+			this.dispatchEvent('collision', { phase: phase, target: bodyA, other: bodyB, collision: pair.collision });
 		}
 	}
 
@@ -2952,7 +3060,7 @@ class PhysicsEngine extends EventObject {
 	}
 
 	addBody(object, bodyType, options) {
-		object.body = new PhysicsBody(this, object, bodyType, options);
+		object.body = new ZetoPhysicsBody(this, object, bodyType, options);
 		mComposite.add(this.matterWorld, object.body.matterBody);
 		this.bodies.push(object.body);
 	}
@@ -2975,7 +3083,7 @@ class PhysicsEngine extends EventObject {
 	}
 }
 
-class PhysicsBody extends EventObject {
+class ZetoPhysicsBody extends ZetoEventObject {
 	bodyType = 'dynamic';
 	shapeType;
 
@@ -3055,7 +3163,7 @@ class PhysicsBody extends EventObject {
 
 	createPath() {
 		var vertices = this.matterBody.vertices;
-		this.path = new EnginePath();
+		this.path = new ZetoEnginePath();
 		for (var vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
 			var vertex = vertices[vertexIndex];
 			this.path.lineTo(vertex.x - this.object.x, vertex.y - this.object.y);
@@ -3141,7 +3249,7 @@ class PhysicsBody extends EventObject {
 	}
 }
 ///////////////////////////////////////////// Testing
-class TestingEngine {
+class ZetoTestingEngine {
 	engine;
 	physics;
 
@@ -3155,7 +3263,7 @@ class TestingEngine {
 			return;
 		}
 		this.filter = options.filter ?? false;
-		this.engine = new Engine();
+		this.engine = new ZetoEngine();
 		this.physics = this.engine.physics;
 
 		this.engine.paused = true;
@@ -3187,7 +3295,7 @@ class TestingEngine {
 	}
 }
 
-// var unit = new TestingEngine({ disabled: disableTests, filter: ['test_example'] });
+// var unit = new ZetoTestingEngine({ disabled: disableTests, filter: ['test_example'] });
 
 // unit.test('test_example', () => {
 // 	unit.assert(true, true, 'test');
