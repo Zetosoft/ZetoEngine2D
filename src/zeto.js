@@ -753,6 +753,7 @@ class ZetoWidgets extends ZetoEventObject {
 
 	setEnabled(enabled, tag = 'default') {
 		this.enabled[tag] = enabled;
+		this.widgets[tag] = this.widgets[tag] ?? [];
 		for (var index = 0; index < this.widgets[tag].length; index++) {
 			var widget = this.widgets[tag][index];
 			widget.setEnabled(enabled);
@@ -1373,7 +1374,7 @@ class ZetoEngine extends ZetoEventObject {
 			touchPoint.lastInputX = touch.pageX;
 			touchPoint.lastInputY = touch.pageY;
 
-			var touchEvent = { deltaX: deltaX, deltaY: deltaY, touchPoint: touchPoint };
+			var touchEvent = { deltaX: deltaX, deltaY: deltaY, touchPoint: touchPoint, phase: 'moved'};
 			this.dispatchEvent('touch', touchEvent);
 
 			if (touchPoint.listenerObjects.length > 0) {
@@ -3175,7 +3176,11 @@ class ZetoPhysicsBody extends ZetoEventObject {
 		var radius = options.radius ?? false;
 		var shape = options.shape ?? false;
 		var resolution = options.resolution ?? 10;
-		var collisionFilter = options.filter ?? {};
+		var collisionFilter = options.filter ?? {
+			category: 1,
+			mask: 1,
+			group: 0,
+		};
 
 		var isStatic = this.bodyType == 'static';
 
