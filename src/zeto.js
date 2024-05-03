@@ -696,7 +696,10 @@ class ZetoGroup extends ZetoEngineObject {
 
 	destroy() {
 		super.destroy();
+		this.removeAll();
+	}
 
+	removeAll() {
 		for (var childIndex = this.children.length - 1; childIndex >= 0; childIndex--) {
 			this.children[childIndex].destroy();
 		}
@@ -1951,7 +1954,7 @@ class ZetoEngine extends ZetoEventObject {
 			var height = height ?? fill.image.height;
 
 			var imageRect = this.newRect(x, y, width, height);
-			imageRect.fill = { image: fill.image, sheet: { x: 0, y: 0, width: width, height: height } };
+			imageRect.fill = { image: fill.image, sheet: { x: 0, y: 0, width: fill.image.width, height: fill.image.height } };
 
 			return this.rootGroup.insert(imageRect, true);
 		} else {
