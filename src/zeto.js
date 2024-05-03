@@ -32,8 +32,12 @@ const end = 'end';
 const start = 'start';
 const hover = 'hover';
 ///////////////////////////////////////////// Helpers
-const isGroup = (object) => { return object instanceof ZetoGroup; };
-const isTransition = (object) => { return object instanceof ZetoTransition; };
+const isGroup = (object) => {
+	return object instanceof ZetoGroup;
+};
+const isTransition = (object) => {
+	return object instanceof ZetoTransition;
+};
 const mathCos = Math.cos;
 const mathSin = Math.sin;
 const pi = Math.PI;
@@ -44,10 +48,18 @@ const mathRandom = Math.random;
 const mathMax = Math.max;
 const mathSqrt = Math.sqrt;
 const mathAbs = Math.abs;
-const randomSideFloat = () => { return mathRandom() * 2 - 1; };
-const isNumber = (value) => { return typeof value === 'number'; };
-const isString = (value) => { return typeof value === 'string'; };
-const isObject = (value) => { return typeof value === 'object'; };
+const randomSideFloat = () => {
+	return mathRandom() * 2 - 1;
+};
+const isNumber = (value) => {
+	return typeof value === 'number';
+};
+const isString = (value) => {
+	return typeof value === 'string';
+};
+const isObject = (value) => {
+	return typeof value === 'object';
+};
 ///////////////////////////////////////////// Matter.js
 const Matter = window.Matter;
 const mBody = Matter?.Body ?? undefined;
@@ -93,7 +105,7 @@ class ZetoEventObject {
 		if (!listener) {
 			return hasListeners ? this : false;
 		} else {
-			return (hasListeners && this.listeners[eventName].indexOf(listener) > -1) ? this : false;
+			return hasListeners && this.listeners[eventName].indexOf(listener) > -1 ? this : false;
 		}
 	}
 
@@ -141,7 +153,7 @@ class ZetoEngineObject extends ZetoEventObject {
 			height: 0,
 
 			rotation: 0,
-		}
+		},
 	};
 
 	fillColor;
@@ -332,18 +344,9 @@ class ZetoEngineObject extends ZetoEventObject {
 				this.engine.context.fill(path.path);
 			} else if (fill.image) {
 				var sheet = fill.sheet;
-				this.engine.context.drawImage(
-					fill.image,
-					sheet.x,
-					sheet.y,
-					sheet.width,
-					sheet.height,
-					path.left,
-					path.top,
-					path.width,
-					path.height,
-				);
-			} else { // Shapes
+				this.engine.context.drawImage(fill.image, sheet.x, sheet.y, sheet.width, sheet.height, path.left, path.top, path.width, path.height);
+			} else {
+				// Shapes
 				this.engine.context.fillStyle = this.fillColor;
 				this.engine.context.scale(path.internal.xScale, path.internal.yScale);
 				this.engine.context.fill(path.path);
@@ -426,13 +429,21 @@ class ZetoEngineObject extends ZetoEventObject {
 
 		for (var vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
 			var vertex = vertices[vertexIndex];
-			var x = world ? (vertex.x * cos - vertex.y * sin) : vertex.x;
-			var y = world ? (vertex.x * sin + vertex.y * cos) : vertex.y;
+			var x = world ? vertex.x * cos - vertex.y * sin : vertex.x;
+			var y = world ? vertex.x * sin + vertex.y * cos : vertex.y;
 
-			if (x < bounds.x1) { bounds.x1 = x; }
-			if (x > bounds.x2) { bounds.x2 = x; }
-			if (y < bounds.y1) { bounds.y1 = y; }
-			if (y > bounds.y2) { bounds.y2 = y; }
+			if (x < bounds.x1) {
+				bounds.x1 = x;
+			}
+			if (x > bounds.x2) {
+				bounds.x2 = x;
+			}
+			if (y < bounds.y1) {
+				bounds.y1 = y;
+			}
+			if (y > bounds.y2) {
+				bounds.y2 = y;
+			}
 		}
 
 		bounds.width = bounds.x2 - bounds.x1;
@@ -442,7 +453,8 @@ class ZetoEngineObject extends ZetoEventObject {
 			this.internal.anchorOffsetX = -(this.anchorX - 0.5) * bounds.width;
 			this.internal.anchorOffsetY = -(this.anchorY - 0.5) * bounds.height;
 
-			if (!skipWorld) { // Update world bounds too
+			if (!skipWorld) {
+				// Update world bounds too
 				this.updateBounds(true, null, worldRotation);
 			}
 		}
@@ -450,7 +462,8 @@ class ZetoEngineObject extends ZetoEventObject {
 }
 
 class ZetoTextObject extends ZetoEngineObject {
-	values = { // Since internal is taken by EngineObject
+	values = {
+		// Since internal is taken by EngineObject
 		fontName: 'Arial',
 		fontSize: 20,
 		contextFont: '20px Arial',
@@ -525,11 +538,12 @@ class ZetoTextObject extends ZetoEngineObject {
 		this.engine.context.fillStyle = this.fillColor;
 		for (var lineIndex = 0; lineIndex < this.values.lines.length; lineIndex++) {
 			var line = this.values.lines[lineIndex];
-			this.engine.context.fillText(line, 0, this.values.offsetY + ((this.values.spacing + this.values.lineHeight) * lineIndex));
+			this.engine.context.fillText(line, 0, this.values.offsetY + (this.values.spacing + this.values.lineHeight) * lineIndex);
 		}
 	}
 
-	calculateTextPath(newPath = false) { // TODO: take into account align
+	calculateTextPath(newPath = false) {
+		// TODO: take into account align
 		var width = 0;
 		var maxLineHeight = 0;
 
@@ -588,7 +602,7 @@ class ZetoTextObject extends ZetoEngineObject {
 			}
 		}
 
-		this.values.lineHeight = (this.values.lines.length > 1) ? (maxLineHeight * (1 + this.values.spacing)) : maxLineHeight;
+		this.values.lineHeight = this.values.lines.length > 1 ? maxLineHeight * (1 + this.values.spacing) : maxLineHeight;
 		var totalHeight = this.values.lines.length * this.values.lineHeight - this.values.spacing;
 		this.values.offsetY = -(this.values.lines.length - 1) * this.values.lineHeight * 0.5;
 
@@ -631,7 +645,9 @@ class ZetoGroup extends ZetoEngineObject {
 			childObject.parent = this;
 		}
 
-		if (!skipUpdate) { this.updateBounds(); }
+		if (!skipUpdate) {
+			this.updateBounds();
+		}
 
 		return childObject;
 	}
@@ -649,10 +665,18 @@ class ZetoGroup extends ZetoEngineObject {
 				// TODO: this is not calculating bounds with anchors?
 				var childBounds = world ? child.bounds.world : child.bounds.local;
 
-				if (childBounds.x1 < bounds.x1) { bounds.x1 = childBounds.x1; }
-				if (childBounds.x2 > bounds.x2) { bounds.x2 = childBounds.x2; }
-				if (childBounds.y1 < bounds.y1) { bounds.y1 = childBounds.y1; }
-				if (childBounds.y2 > bounds.y2) { bounds.y2 = childBounds.y2; }
+				if (childBounds.x1 < bounds.x1) {
+					bounds.x1 = childBounds.x1;
+				}
+				if (childBounds.x2 > bounds.x2) {
+					bounds.x2 = childBounds.x2;
+				}
+				if (childBounds.y1 < bounds.y1) {
+					bounds.y1 = childBounds.y1;
+				}
+				if (childBounds.y2 > bounds.y2) {
+					bounds.y2 = childBounds.y2;
+				}
 			}
 
 			bounds.width = bounds.x2 - bounds.x1;
@@ -664,7 +688,8 @@ class ZetoGroup extends ZetoEngineObject {
 			}
 		}
 
-		if (!world && !skipWorld) { // Update world bounds too
+		if (!world && !skipWorld) {
+			// Update world bounds too
 			this.updateBounds(true, null, worldRotation);
 		}
 	}
@@ -679,10 +704,7 @@ class ZetoGroup extends ZetoEngineObject {
 }
 
 class ZetoStrings extends ZetoEventObject {
-	strings = [
-		{ en: {} },
-		{ es: {} },
-	];
+	strings = [{ en: {} }, { es: {} }];
 	engine;
 	locale = 'en';
 
@@ -713,11 +735,11 @@ class ZetoStrings extends ZetoEventObject {
 
 	get(key, replace) {
 		let string = this.strings[this.locale][key] || key;
-		if (replace && typeof replace === "object") {
+		if (replace && typeof replace === 'object') {
 			Object.keys(replace).forEach((key) => {
 				const placeholder = `:${key}`;
 				const value = replace[key];
-				string = string.replace(new RegExp(placeholder, "g"), value);
+				string = string.replace(new RegExp(placeholder, 'g'), value);
 			});
 		}
 		return string;
@@ -741,7 +763,7 @@ class ZetoWidgets extends ZetoEventObject {
 		super();
 		this.engine = engine;
 	}
-	
+
 	newButton(options) {
 		let button = new ZetoButton(this.engine, options);
 		button.addEventListener('finalize', (event) => {
@@ -854,7 +876,7 @@ class ZetoButton extends ZetoWidget {
 			font: options.font,
 			fontSize: options.fontSize,
 			text: options.label,
-			align: options.labelAlign
+			align: options.labelAlign,
 		};
 		this.label = new ZetoTextObject(this.engine, labelOptions);
 		this.label.anchorX = options.labelAnchorX ?? 0.5;
@@ -867,7 +889,7 @@ class ZetoButton extends ZetoWidget {
 
 	#buildShapeView(options) {
 		const { shape, width, height, radius, fillColor, strokeColor, strokeWidth } = options;
-		
+
 		let defaultShape, pressedShape, disabledShape;
 
 		switch (shape) {
@@ -908,7 +930,7 @@ class ZetoButton extends ZetoWidget {
 
 	#build9FrameView(group, sheetImage, desiredWidth, leftFrameData, middleFrameData, rightFrameData) {
 		var minWidth = leftFrameData.width + rightFrameData.width;
-		var width = mathMax(desiredWidth ?? (minWidth + middleFrameData.width), minWidth);
+		var width = mathMax(desiredWidth ?? minWidth + middleFrameData.width, minWidth);
 		var middleWidth = width - minWidth;
 		var height = leftFrameData.height;
 		var hMiddleWidth = mathFloor(middleWidth * 0.5);
@@ -943,7 +965,8 @@ class ZetoButton extends ZetoWidget {
 		this.enabled = enabled;
 	}
 
-	#exitframe(event) { // TODO: should differentiate between hold and tap
+	#exitframe(event) {
+		// TODO: should differentiate between hold and tap
 		if (this.holding) {
 			if (this.onHoldListener) {
 				this.onHoldListener({ target: this, frame: this.engine.frameEvent.frame - this.holding });
@@ -951,7 +974,7 @@ class ZetoButton extends ZetoWidget {
 		}
 
 		if (this.onTapListener) {
-			if ((this.engine.frameEvent.timeStamp - this.tapTimestamp) < this.engine.tapTime) {
+			if (this.engine.frameEvent.timeStamp - this.tapTimestamp < this.engine.tapTime) {
 				this.#setPressedView(true);
 			} else {
 				this.#setPressedView(false);
@@ -1068,7 +1091,7 @@ class ZetoSprite extends ZetoEngineObject {
 						this.frameTimestamp = event.timeStamp - (deltaTime % this.frameTime);
 						var rightLimit = this.sequence.start + this.sequence.count - 1;
 						if (this.frame > rightLimit) {
-							var frameDiff = (this.frame - rightLimit) % this.sequence.count - 1;
+							var frameDiff = ((this.frame - rightLimit) % this.sequence.count) - 1;
 							this.frame = this.sequence.start + frameDiff;
 						} else if (this.frame < this.sequence.start) {
 							var frameDiff = (this.sequence.start - this.frame) % this.sequence.count;
@@ -1087,7 +1110,6 @@ class ZetoSprite extends ZetoEngineObject {
 }
 
 class ZetoCamera extends ZetoGroup {
-
 	targetRotation = 0;
 	focusAngle = 0;
 	rotationX = 0;
@@ -1144,7 +1166,8 @@ class ZetoCamera extends ZetoGroup {
 		return this.values.zoom;
 	}
 
-	set damping(damping) { // 0 means no damping (Instant tracking), 1 means no movement
+	set damping(damping) {
+		// 0 means no damping (Instant tracking), 1 means no movement
 		damping = damping > 1 ? 1 : damping < 0 ? 0 : damping;
 		this.values.damping = damping;
 		this.values.dampingMultiplier = 1 - damping;
@@ -1158,14 +1181,14 @@ class ZetoCamera extends ZetoGroup {
 		super.update(event);
 
 		if (this.values.focus) {
-			this.targetRotation = this.values.trackRotation ? - (this.values.focus.rotation + this.values.rotationOffset) : this.values.defaultRotation;
+			this.targetRotation = this.values.trackRotation ? -(this.values.focus.rotation + this.values.rotationOffset) : this.values.defaultRotation;
 
-			this.view.rotation = (this.view.rotation - (this.view.rotation - this.targetRotation) * this.values.dampingMultiplier);
+			this.view.rotation = this.view.rotation - (this.view.rotation - this.targetRotation) * this.values.dampingMultiplier;
 
 			this.focusAngle = this.view.rotation * radianMultiplier;
 
-			this.values.targetX = (this.values.targetX - (this.values.targetX - (this.values.focus.x)) * this.values.dampingMultiplier);
-			this.values.targetY = (this.values.targetY - (this.values.targetY - (this.values.focus.y)) * this.values.dampingMultiplier);
+			this.values.targetX = this.values.targetX - (this.values.targetX - this.values.focus.x) * this.values.dampingMultiplier;
+			this.values.targetY = this.values.targetY - (this.values.targetY - this.values.focus.y) * this.values.dampingMultiplier;
 
 			this.values.targetX = this.values.x1 < this.values.targetX ? this.values.targetX : this.values.x1;
 			this.values.targetX = this.values.x2 > this.values.targetX ? this.values.targetX : this.values.x2;
@@ -1291,7 +1314,7 @@ class ZetoEngine extends ZetoEventObject {
 	timers = [];
 
 	info = {
-		isMobile: (((navigator.maxTouchPoints & 0xFF) > 1) || 'ontouchstart' in document) ? true : false,
+		isMobile: (navigator.maxTouchPoints & 0xff) > 1 || 'ontouchstart' in document ? true : false,
 	};
 
 	loadedIds = {
@@ -1307,7 +1330,7 @@ class ZetoEngine extends ZetoEventObject {
 		var moduleName = options.moduleName ?? false;
 		var moduleParams = options.moduleParams ?? {};
 		var loadedListener = options.loadedListener ?? false;
-		var progressListener = options.progressListener ?? false
+		var progressListener = options.progressListener ?? false;
 		var smoothing = options.smoothing ?? false;
 		var canvas = options.canvas ?? 'canvas';
 
@@ -1349,7 +1372,8 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	visibilityChange(event) {
-		if (document.hidden) { // mainLoop handles the re-focus
+		if (document.hidden) {
+			// mainLoop handles the re-focus
 			this.focus = false;
 		}
 	}
@@ -1371,7 +1395,7 @@ class ZetoEngine extends ZetoEventObject {
 					startFrame: this.frameEvent.frame,
 					listenerObjects: [],
 					started: false,
-				}
+				};
 			}
 		}
 	}
@@ -1387,7 +1411,7 @@ class ZetoEngine extends ZetoEventObject {
 			touchPoint.lastInputX = touch.pageX;
 			touchPoint.lastInputY = touch.pageY;
 
-			var touchEvent = { deltaX: deltaX, deltaY: deltaY, touchPoint: touchPoint, phase: moved};
+			var touchEvent = { deltaX: deltaX, deltaY: deltaY, touchPoint: touchPoint, phase: moved };
 			this.dispatchEvent('touch', touchEvent);
 
 			if (touchPoint.listenerObjects.length > 0) {
@@ -1434,7 +1458,8 @@ class ZetoEngine extends ZetoEventObject {
 				this.dispatchEvent('tap', tapEvent); // Engine level
 			}
 
-			if (touchPoint.listenerObjects.length > 0) { // Object level
+			if (touchPoint.listenerObjects.length > 0) {
+				// Object level
 				for (var objectIndex = 0; objectIndex < touchPoint.listenerObjects.length; objectIndex++) {
 					var object = touchPoint.listenerObjects[objectIndex];
 					if (tapEvent && object.hasEventListener('tap')) {
@@ -1465,7 +1490,8 @@ class ZetoEngine extends ZetoEventObject {
 		if (event.button == 0) {
 			this.mouseTouch = true;
 			this.activeTouchPoints.push(0);
-			this.touchPoints[0] = { // Mouse is identifier 0
+			this.touchPoints[0] = {
+				// Mouse is identifier 0
 				lastInputX: event.pageX,
 				lastInputY: event.pageY,
 				startX: event.pageX,
@@ -1474,7 +1500,7 @@ class ZetoEngine extends ZetoEventObject {
 				startFrame: this.frameEvent.frame,
 				listenerObjects: [],
 				started: false,
-			}
+			};
 		}
 	}
 
@@ -1570,8 +1596,6 @@ class ZetoEngine extends ZetoEventObject {
 		canvas.style.msUserSelect = 'none';
 		canvas.style.userSelect = 'none';
 
-		
-
 		document.documentElement.style.overscrollBehavior = 'none';
 		document.body.style.overscrollBehavior = 'none';
 
@@ -1607,7 +1631,9 @@ class ZetoEngine extends ZetoEventObject {
 
 		this.dispatchEvent('exitframe', this.frameEvent);
 
-		if (this.showFPS) { this.drawFPS(timeStamp); }
+		if (this.showFPS) {
+			this.drawFPS(timeStamp);
+		}
 		window.requestAnimationFrame(this.mainLoop.bind(this));
 	}
 
@@ -1616,7 +1642,8 @@ class ZetoEngine extends ZetoEventObject {
 			var touchPoint = this.startTouchPoints[touchIndex];
 			for (var objectIndex = 0; objectIndex < touchPoint.listenerObjects.length; objectIndex++) {
 				var object = touchPoint.listenerObjects[objectIndex];
-				if (object.hasEventListener('touch')) { // TODO: this check can be optimized
+				if (object.hasEventListener('touch')) {
+					// TODO: this check can be optimized
 					var touchEvent = {
 						x: touchPoint.lastInputX,
 						y: touchPoint.lastInputY,
@@ -1632,7 +1659,8 @@ class ZetoEngine extends ZetoEventObject {
 			var touchId = this.removeTouchPoints[touchIndex];
 
 			var activeIndex = this.activeTouchPoints.indexOf(touchId);
-			if (activeIndex > -1) { // TODO: check alternatives
+			if (activeIndex > -1) {
+				// TODO: check alternatives
 				this.activeTouchPoints.splice(activeIndex, 1);
 			}
 			delete this.touchPoints[touchId];
@@ -1647,7 +1675,8 @@ class ZetoEngine extends ZetoEventObject {
 				this.timers.splice(timerIndex, 1);
 				continue;
 			} else if (timer.executeTime <= this.frameEvent.timeStamp) {
-				if (timer.iterations != 0) { // less than 0 is infinite iterations
+				if (timer.iterations != 0) {
+					// less than 0 is infinite iterations
 					timer.listener({ target: timer });
 					timer.executeTime = this.frameEvent.timeStamp + timer.delay;
 					timer.iterations--;
@@ -1695,7 +1724,8 @@ class ZetoEngine extends ZetoEventObject {
 		}
 
 		var touchObject = object.hasEventListener('tap') || object.hasEventListener('touch');
-		if (isGroup(object)) { // TODO: limitation: if two or more chained groups have tap listeners, the previous one will be ignored
+		if (isGroup(object)) {
+			// TODO: limitation: if two or more chained groups have tap listeners, the previous one will be ignored
 			return touchObject || parentTouch; // This means only the last group in the chain will be able to receive tap events (And the children that confirm isPointInPath)
 		}
 
@@ -1706,14 +1736,15 @@ class ZetoEngine extends ZetoEventObject {
 				continue; // Skip if the touch started before this frame
 			}
 
-			if (!touchPoint.listenerObjects) { 
+			if (!touchPoint.listenerObjects) {
 				continue; // Skip if the touch has no listener objects
 			}
 
 			if (touchObject || parentTouch) {
 				if (this.context.isPointInPath(object.path.path, touchPoint.lastInputX, touchPoint.lastInputY)) {
 					if (parentTouch) {
-						if (touchPoint.listenerObjects.indexOf(parentTouch) == -1) { // Can already be added by sibling object
+						if (touchPoint.listenerObjects.indexOf(parentTouch) == -1) {
+							// Can already be added by sibling object
 							touchPoint.listenerObjects.push(parentTouch);
 						}
 						parentTouch = false; // Parent has been handled for the rest of children
@@ -1733,7 +1764,8 @@ class ZetoEngine extends ZetoEventObject {
 		return touchObject || parentTouch;
 	}
 
-	hoverUpdate(object, parentHover = false) { // TODO: this can be optimized (To start off remove in mobile) use isGroup(), etc
+	hoverUpdate(object, parentHover = false) {
+		// TODO: this can be optimized (To start off remove in mobile) use isGroup(), etc
 		var hoverObject = object.hasEventListener(hover) || parentHover; // hoverObject can be a parent and not the object itself
 		if (hoverObject) {
 			if (!hoverObject.hover) {
@@ -1744,7 +1776,8 @@ class ZetoEngine extends ZetoEventObject {
 					this.dispatchObjectEvent(hoverObject, hover, hoverEvent);
 				}
 			} else if (hoverObject.hover != this.frameEvent.frame) {
-				if (!hoverObject.isVisible || hoverObject.alpha == 0 || !this.context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) { // My guess is that this is the main bottleneck
+				if (!hoverObject.isVisible || hoverObject.alpha == 0 || !this.context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) {
+					// My guess is that this is the main bottleneck
 					hoverObject.hover = false;
 
 					var hoverEvent = { x: this.mouseX, y: this.mouseY, phase: ended };
@@ -1761,16 +1794,19 @@ class ZetoEngine extends ZetoEventObject {
 			this.context.lineWidth = 1;
 			this.context.fillStyle = this.debugColor;
 
-			if (isGroup(object)) { // Cross for groups
+			if (isGroup(object)) {
+				// Cross for groups
 				this.context.save();
 				this.context.rotate(45 * radianMultiplier);
 				this.context.fillRect(0, -4, 2, 10);
 				this.context.fillRect(-4, 0, 10, 2);
 				this.context.restore();
-			} else { // Dot for anything else
+			} else {
+				// Dot for anything else
 				this.context.fillRect(0, 0, 3, 3);
 
-				if (object.bounds) { // Draw bounds except for root group
+				if (object.bounds) {
+					// Draw bounds except for root group
 					this.context.strokeStyle = this.debugBoundsColor;
 					this.context.save();
 					this.context.rotate(-object.bounds.world.rotation * radianMultiplier);
@@ -1877,7 +1913,8 @@ class ZetoEngine extends ZetoEventObject {
 		return timer;
 	}
 
-	cancelTimer(timer) { // TODO: check if is timer?
+	cancelTimer(timer) {
+		// TODO: check if is timer?
 		if (timer) {
 			timer.remove = true;
 		}
@@ -1991,7 +2028,7 @@ class ZetoEngine extends ZetoEventObject {
 			frameData: frameData,
 			numFrames: numFrames,
 			sheet: frameData[0], // First frame
-		}
+		};
 	}
 
 	newSprite(imageSheet, sequenceData, x = 0, y = 0) {
@@ -2040,7 +2077,8 @@ class ZetoEngine extends ZetoEventObject {
 				audio.decoding = true;
 				try {
 					audio.zBuffer = await this.audioContext.decodeAudioData(audio.response);
-				} catch (e) { // Might not be ready yet (Not interacted with page)
+				} catch (e) {
+					// Might not be ready yet (Not interacted with page)
 					return;
 				}
 				audio.decoding = false;
@@ -2099,9 +2137,9 @@ class ZetoEngine extends ZetoEventObject {
 
 				if (numLoaded == numAssets) {
 					var onCompleteEvent = {
-						numLoaded: numLoaded
+						numLoaded: numLoaded,
 					};
-					onComplete(onCompleteEvent)
+					onComplete(onCompleteEvent);
 				}
 			}
 		}
@@ -2109,7 +2147,7 @@ class ZetoEngine extends ZetoEventObject {
 		var assetLoadedBind = assetLoaded.bind(this);
 
 		if (images) {
-			images.forEach(element => {
+			images.forEach((element) => {
 				if (!this.#checkLoaded(element.id, element.filename, 'image', assetLoadedBind)) {
 					element.image = new Image();
 					element.image.onload = assetLoadedBind;
@@ -2118,7 +2156,8 @@ class ZetoEngine extends ZetoEventObject {
 					element.image.zType = 'image'; // Custom property
 
 					this.loadedImages[element.id] = element;
-					if (element.image.complete) { // Is in cache
+					if (element.image.complete) {
+						// Is in cache
 						assetLoadedBind({ target: element.image, type: 'cache-z' }); // Avoid dupe warning
 					}
 				}
@@ -2126,7 +2165,7 @@ class ZetoEngine extends ZetoEventObject {
 		}
 
 		if (audio) {
-			audio.forEach(element => {
+			audio.forEach((element) => {
 				if (!this.#checkLoaded(element.id, element.filename, 'audio', assetLoadedBind)) {
 					element.audio = new XMLHttpRequest();
 					element.audio.onload = assetLoadedBind;
@@ -2136,13 +2175,13 @@ class ZetoEngine extends ZetoEventObject {
 					element.audio.send();
 					element.audio.zType = 'audio'; // Custom property
 
-					this.loadedAudio[element.id] = element
+					this.loadedAudio[element.id] = element;
 				}
 			});
 		}
 
 		if (data) {
-			data.forEach(element => {
+			data.forEach((element) => {
 				if (!this.#checkLoaded(element.id, element.filename, 'data', assetLoadedBind)) {
 					element.data = new XMLHttpRequest();
 					element.data.onload = assetLoadedBind;
@@ -2162,7 +2201,7 @@ class ZetoEngine extends ZetoEventObject {
 				numLoaded: 0,
 				engine: this,
 			};
-			onComplete(onCompleteEvent)
+			onComplete(onCompleteEvent);
 		}
 	}
 
@@ -2179,13 +2218,14 @@ class ZetoEngine extends ZetoEventObject {
 		return false;
 	}
 
-	#generateCallback(after) { // Allows for one liner callbacks
+	#generateCallback(after) {
+		// Allows for one liner callbacks
 		return function (before) {
 			return function (event) {
 				event.result = before ? before(event) : false;
 				return after ? after(event) : false;
-			}
-		}
+			};
+		};
 	}
 
 	async load(moduleName, params, loadedListener, progressListener) {
@@ -2338,7 +2378,7 @@ class ZetoPath {
 	// TODO: this is a work in progress and very fragile
 
 	path = new Path2D();
-	
+
 	internal = {
 		width: 0,
 		height: 0,
@@ -2414,7 +2454,7 @@ class ZetoPath {
 		this.y = y;
 		this.internal.width = width;
 		this.internal.height = height;
-		this.internal.radius = radius; 
+		this.internal.radius = radius;
 
 		this.internal.setWidth = width;
 		this.internal.setHeight = height;
@@ -2518,14 +2558,14 @@ class ZetoParticleEngine extends ZetoEventObject {
 		var magnitude = mathAbs(point.x) + mathAbs(point.y);
 		if (magnitude != 0) {
 			return {
-				x: scale * point.x / magnitude,
-				y: scale * point.y / magnitude
-			}
+				x: (scale * point.x) / magnitude,
+				y: (scale * point.y) / magnitude,
+			};
 		} else {
 			return {
 				x: 0,
-				y: 0
-			}
+				y: 0,
+			};
 		}
 	}
 
@@ -2536,21 +2576,21 @@ class ZetoParticleEngine extends ZetoEventObject {
 				var emitter = this.emitters[emitterIndex];
 
 				if (emitter.state != 'paused') {
-					if (emitter.active && (emitter.emissionRate > 0)) {
+					if (emitter.active && emitter.emissionRate > 0) {
 						var rate = 1.0 / emitter.emissionRate;
 
 						if (emitter.particles.length < emitter.maxParticles) {
 							emitter.emitCounter += delta;
 						}
 
-						while ((emitter.particles.length < emitter.maxParticles) && (emitter.emitCounter > rate)) {
+						while (emitter.particles.length < emitter.maxParticles && emitter.emitCounter > rate) {
 							this.addParticle(emitter);
 							emitter.emitCounter -= rate;
 						}
 
 						emitter.elapsedTime += delta;
 
-						if ((emitter.duration != -1) && (emitter.duration < emitter.elapsedTime)) {
+						if (emitter.duration != -1 && emitter.duration < emitter.elapsedTime) {
 							this.stopParticleEmitter(emitter);
 						}
 					}
@@ -2564,7 +2604,7 @@ class ZetoParticleEngine extends ZetoEventObject {
 						} else {
 							this.removeParticleAtIndex(emitter, particleIndex);
 
-							if ((emitter.particles.length <= 0) && (emitter.duration != -1)) {
+							if (emitter.particles.length <= 0 && emitter.duration != -1) {
 								this.removeEmitter({ target: emitter });
 								return;
 							}
@@ -2612,18 +2652,18 @@ class ZetoParticleEngine extends ZetoEventObject {
 
 		var vector = {
 			x: mathCos(newAngle),
-			y: mathSin(newAngle)
+			y: mathSin(newAngle),
 		};
 
 		var vectorSpeed = emitter.speed + emitter.speedVariance * randomSideFloat();
 
 		particle.direction = {
 			x: vector.x * vectorSpeed,
-			y: vector.y * vectorSpeed
+			y: vector.y * vectorSpeed,
 		};
 
 		var timeToLive = emitter.particleLifespan + emitter.particleLifespanVariance * randomSideFloat();
-		particle.timeToLive = (timeToLive > 0) ? timeToLive : 0;
+		particle.timeToLive = timeToLive > 0 ? timeToLive : 0;
 
 		particle.radius = emitter.maxRadius + emitter.maxRadiusVariance * randomSideFloat();
 		particle.radiusDelta = (particle.radius - emitter.maxRadius) / particle.timeToLive;
@@ -2635,8 +2675,8 @@ class ZetoParticleEngine extends ZetoEventObject {
 
 		var particleStartSize = emitter.startParticleSize + emitter.startParticleSizeVariance * randomSideFloat();
 		var particleFinishSize = emitter.finishParticleSize + emitter.finishParticleSizeVariance * randomSideFloat();
-		particle.particleSizeDelta = ((particleFinishSize - particleStartSize) / particle.timeToLive);
-		particle.particleSize = (particleStartSize > 0) ? particleStartSize : 0;
+		particle.particleSizeDelta = (particleFinishSize - particleStartSize) / particle.timeToLive;
+		particle.particleSize = particleStartSize > 0 ? particleStartSize : 0;
 
 		var startRotation = emitter.rotationStart + emitter.rotationStartVariance * randomSideFloat();
 		var endRotation = emitter.rotationEnd + emitter.rotationEndVariance * randomSideFloat();
@@ -2645,7 +2685,7 @@ class ZetoParticleEngine extends ZetoEventObject {
 
 		particle.alpha = emitter.startColorAlpha + emitter.startColorVarianceAlpha * randomSideFloat();
 		var endAlpha = emitter.finishColorAlpha + emitter.finishColorVarianceAlpha * randomSideFloat();
-		particle.deltaAlpha = ((endAlpha - particle.alpha) / particle.timeToLive);
+		particle.deltaAlpha = (endAlpha - particle.alpha) / particle.timeToLive;
 
 		particle.image.x = particle.position.x;
 		particle.image.y = particle.position.y;
@@ -2701,7 +2741,7 @@ class ZetoParticleEngine extends ZetoEventObject {
 
 			var tmp = {
 				x: radial.x + tangential.x + emitter.gravityx,
-				y: radial.y + tangential.y + emitter.gravityy
+				y: radial.y + tangential.y + emitter.gravityy,
 			};
 
 			tmp.x = tmp.x * delta;
@@ -2717,10 +2757,10 @@ class ZetoParticleEngine extends ZetoEventObject {
 			particle.position.y = particle.position.y + tmp.y;
 		}
 
-		particle.alpha = particle.alpha + (particle.deltaAlpha * delta);
+		particle.alpha = particle.alpha + particle.deltaAlpha * delta;
 
 		particle.particleSize = particle.particleSize + particle.particleSizeDelta * delta;
-		particle.particleSize = (particle.particleSize > 0) ? particle.particleSize : 0;
+		particle.particleSize = particle.particleSize > 0 ? particle.particleSize : 0;
 
 		particle.rotation = particle.rotation + particle.rotationDelta * delta;
 
@@ -2759,15 +2799,15 @@ class ZetoParticle {
 
 	position = {
 		x: 0,
-		y: 0
+		y: 0,
 	};
 	direction = {
 		x: 0,
-		y: 0
+		y: 0,
 	};
 	startPos = {
 		x: 0,
-		y: 0
+		y: 0,
 	};
 
 	startAlpha = 0;
@@ -2900,12 +2940,12 @@ class ZetoEmitter extends ZetoGroup {
 ///////////////////////////////////////////// Transitions
 class ZetoEasing {
 	static linear(t, tMax, start, delta) {
-		return delta * t / tMax + start;
+		return (delta * t) / tMax + start;
 	}
 
 	static inQuad(t, tMax, start, delta) {
 		t = t / tMax;
-		return (delta * (t * t) + start);
+		return delta * (t * t) + start;
 	}
 
 	static outQuad(t, tMax, start, delta) {
@@ -2914,12 +2954,11 @@ class ZetoEasing {
 	}
 
 	static inOutQuad(t, tMax, start, delta) {
-		t = t / tMax * 2;
+		t = (t / tMax) * 2;
 		if (t < 1) {
-			return (delta / 2 * (t * t) + start);
-		}
-		else {
-			return -delta / 2 * ((t - 1) * (t - 3) - 1) + start;
+			return (delta / 2) * (t * t) + start;
+		} else {
+			return (-delta / 2) * ((t - 1) * (t - 3) - 1) + start;
 		}
 	}
 
@@ -2937,30 +2976,29 @@ class ZetoEasing {
 
 	static inOutBack(t, tMax, start, delta) {
 		var s = 1.7 * 1.525;
-		t = t / tMax * 2;
+		t = (t / tMax) * 2;
 		if (t < 1) {
-			return delta / 2 * (t * t * ((s + 1) * t - s)) + start;
-		}
-		else {
+			return (delta / 2) * (t * t * ((s + 1) * t - s)) + start;
+		} else {
 			t = t - 2;
-			return delta / 2 * (t * t * ((s + 1) * t + s) + 2) + start;
+			return (delta / 2) * (t * t * ((s + 1) * t + s) + 2) + start;
 		}
 	}
 
 	static inSine(t, tMax, start, delta) {
-		return (-delta * mathCos(t / tMax * hPi) + delta + start);
+		return -delta * mathCos((t / tMax) * hPi) + delta + start;
 	}
 
 	static outSine(t, tMax, start, delta) {
-		return (delta * mathSin(t / tMax * hPi) + start);
+		return delta * mathSin((t / tMax) * hPi) + start;
 	}
 
 	static inOutSine(t, tMax, start, delta) {
-		return (-delta / 2 * (mathCos(pi * t / tMax) - 1) + start);
+		return (-delta / 2) * (mathCos((pi * t) / tMax) - 1) + start;
 	}
 }
 
-class Easing extends ZetoEasing { }
+class Easing extends ZetoEasing {}
 
 class ZetoTransitionEngine extends ZetoEventObject {
 	engine;
@@ -3008,7 +3046,8 @@ class ZetoTransitionEngine extends ZetoEventObject {
 					var value = transition.easing(transition.currentTime, transition.time, transition.startValues[key], transition.deltaValues[key]);
 					transition.target[key] = transition.stringFlags[key] ? parseInt(value) : value;
 				}
-			} else { // Transition complete
+			} else {
+				// Transition complete
 				for (var key in transition.targetValues) {
 					transition.target[key] = transition.targetValues[key];
 				}
@@ -3342,7 +3381,7 @@ class ZetoPhysicsBody extends ZetoEventObject {
 			restitution: options.bounce ?? 0.1,
 			friction: options.friction ?? 0.1,
 			angle: this.object.rotation * radianMultiplier,
-		}
+		};
 
 		if (shape) {
 			this.shapeType = 'polygon';
