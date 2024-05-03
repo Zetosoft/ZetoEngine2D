@@ -21,9 +21,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 ///////////////////////////////////////////// Constants
+const lockCanvasEvents = ['touchstart', 'touchmove', 'touchend', 'touchcancel'];
 const radianMultiplier = Math.PI / 180;
 const degreeMultiplier = 180 / Math.PI;
 const disableTests = true;
+const began = 'began';
+const moved = 'moved';
+const ended = 'ended';
+const end = 'end';
+const start = 'start';
+const hover = 'hover';
 ///////////////////////////////////////////// Helpers
 const isGroup = (object) => { return object instanceof ZetoGroup; };
 const isTransition = (object) => { return object instanceof ZetoTransition; };
@@ -94,11 +101,11 @@ class ZetoEventObject {
 		this.dispatchEvent('finalize', { target: this });
 
 		for (var key in this.listeners) {
-			if (key == 'hover') {
+			if (key == hover) {
 				if (this.hover == this.engine.frameEvent.frame) {
 					this.hover = false;
-					var hoverEvent = { x: this.mouseX, y: this.mouseY, phase: 'ended' };
-					this.engine.dispatchObjectEvent(this, 'hover', hoverEvent);
+					var hoverEvent = { x: this.mouseX, y: this.mouseY, phase: ended };
+					this.engine.dispatchObjectEvent(this, hover, hoverEvent);
 				}
 			}
 			delete this.listeners[key];
@@ -168,7 +175,7 @@ class ZetoEngineObject extends ZetoEventObject {
 	engine;
 	strokeWidth = 0;
 	stroke;
-	path = new ZetoEnginePath();
+	path = new ZetoPath();
 
 	hover = false;
 
@@ -224,15 +231,11 @@ class ZetoEngineObject extends ZetoEventObject {
 	}
 
 	set width(value) {
-		// TODO: this is temp, bounds not updated and path not really changed
 		this.path.width = value;
-		this.path.left = -value * 0.5;
 	}
 
 	set height(value) {
-		// TODO: this is temp, bounds not updated and path not really changed
 		this.path.height = value;
-		this.path.top = -value * 0.5;
 	}
 
 	set anchorX(value) {
@@ -340,8 +343,9 @@ class ZetoEngineObject extends ZetoEventObject {
 					path.width,
 					path.height,
 				);
-			} else {
+			} else { // Shapes
 				this.engine.context.fillStyle = this.fillColor;
+				this.engine.context.scale(path.internal.xScale, path.internal.yScale);
 				this.engine.context.fill(path.path);
 			}
 		} else {
@@ -592,7 +596,7 @@ class ZetoTextObject extends ZetoEngineObject {
 		var top = -totalHeight * 0.5;
 
 		if (newPath) {
-			this.path = new ZetoEnginePath();
+			this.path = new ZetoPath();
 		}
 		this.path.rect(left, top, width, totalHeight);
 	}
@@ -947,7 +951,7 @@ class ZetoButton extends ZetoWidget {
 		}
 
 		if (this.onTapListener) {
-			if ((this.engine.frameEvent.timeStamp - this.tapTimestamp) < 300) {
+			if ((this.engine.frameEvent.timeStamp - this.tapTimestamp) < this.engine.tapTime) {
 				this.#setPressedView(true);
 			} else {
 				this.#setPressedView(false);
@@ -979,13 +983,13 @@ class ZetoButton extends ZetoWidget {
 
 	onTouch(event) {
 		if (this.enabled) {
-			if (event.phase == 'began') {
+			if (event.phase == began) {
 				if (this.onPressListener) {
 					this.onPressListener(event);
 				}
 				this.holding = this.engine.frameEvent.frame;
 				this.#setPressedView(true);
-			} else if (event.phase == 'ended') {
+			} else if (event.phase == ended) {
 				if (this.onReleaseListener) {
 					this.onReleaseListener(event);
 				}
@@ -997,11 +1001,11 @@ class ZetoButton extends ZetoWidget {
 	}
 
 	onHover(event) {
-		if (event.phase == 'began') {
+		if (event.phase == began) {
 			if (this.enabled) {
 				document.body.style.cursor = 'pointer';
 			}
-		} else if (event.phase == 'ended') {
+		} else if (event.phase == ended) {
 			document.body.style.cursor = 'default';
 		}
 	}
@@ -1257,15 +1261,16 @@ class ZetoEngine extends ZetoEventObject {
 		timeStamp: 0,
 		delta: 0,
 	};
+	canvasLocked = false;
 	canvas;
 	context;
 
 	audioContext;
 
-	cX; // Screen center X
-	cY; // Screen center Y
-	width; // Screen width
-	height; // Screen height
+	cX;
+	cY;
+	width;
+	height;
 
 	paused = false;
 	focus = true;
@@ -1382,7 +1387,7 @@ class ZetoEngine extends ZetoEventObject {
 			touchPoint.lastInputX = touch.pageX;
 			touchPoint.lastInputY = touch.pageY;
 
-			var touchEvent = { deltaX: deltaX, deltaY: deltaY, touchPoint: touchPoint, phase: 'moved'};
+			var touchEvent = { deltaX: deltaX, deltaY: deltaY, touchPoint: touchPoint, phase: moved};
 			this.dispatchEvent('touch', touchEvent);
 
 			if (touchPoint.listenerObjects.length > 0) {
@@ -1395,7 +1400,7 @@ class ZetoEngine extends ZetoEventObject {
 							deltaX: deltaX,
 							deltaY: deltaY,
 							touchPoint: touchPoint,
-							phase: 'moved',
+							phase: moved,
 						};
 						this.dispatchObjectEvent(object, 'touch', touchEvent);
 					}
@@ -1440,7 +1445,7 @@ class ZetoEngine extends ZetoEventObject {
 							x: touchPoint.lastInputX,
 							y: touchPoint.lastInputY,
 							touchPoint: touchPoint,
-							phase: 'ended',
+							phase: ended,
 						};
 						this.dispatchObjectEvent(object, 'touch', touchEvent);
 					}
@@ -1512,7 +1517,7 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	keyDown(event) {
-		this.inputKey(event, 'began');
+		this.inputKey(event, began);
 		this.holdingKey[event.code ?? event.key] = {
 			event: event,
 			frame: 0,
@@ -1520,7 +1525,7 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	keyUp(event) {
-		this.inputKey(event, 'ended', -1); // TODO: get holdingKey last frame?
+		this.inputKey(event, ended, -1); // TODO: get holdingKey last frame?
 		this.holdingKey[event.code ?? event.key] = false;
 	}
 
@@ -1564,6 +1569,8 @@ class ZetoEngine extends ZetoEventObject {
 		canvas.style.mozUserSelect = 'none';
 		canvas.style.msUserSelect = 'none';
 		canvas.style.userSelect = 'none';
+
+		
 
 		document.documentElement.style.overscrollBehavior = 'none';
 		document.body.style.overscrollBehavior = 'none';
@@ -1614,7 +1621,7 @@ class ZetoEngine extends ZetoEventObject {
 						x: touchPoint.lastInputX,
 						y: touchPoint.lastInputY,
 						touchPoint: touchPoint,
-						phase: 'began',
+						phase: began,
 					};
 					this.dispatchObjectEvent(object, 'touch', touchEvent);
 				}
@@ -1727,21 +1734,21 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	hoverUpdate(object, parentHover = false) { // TODO: this can be optimized (To start off remove in mobile) use isGroup(), etc
-		var hoverObject = object.hasEventListener('hover') || parentHover; // hoverObject can be a parent and not the object itself
+		var hoverObject = object.hasEventListener(hover) || parentHover; // hoverObject can be a parent and not the object itself
 		if (hoverObject) {
 			if (!hoverObject.hover) {
 				if (this.context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) {
 					hoverObject.hover = this.frameEvent.frame;
 
-					var hoverEvent = { x: this.mouseX, y: this.mouseY, phase: 'began' };
-					this.dispatchObjectEvent(hoverObject, 'hover', hoverEvent);
+					var hoverEvent = { x: this.mouseX, y: this.mouseY, phase: began };
+					this.dispatchObjectEvent(hoverObject, hover, hoverEvent);
 				}
 			} else if (hoverObject.hover != this.frameEvent.frame) {
 				if (!hoverObject.isVisible || hoverObject.alpha == 0 || !this.context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) { // My guess is that this is the main bottleneck
 					hoverObject.hover = false;
 
-					var hoverEvent = { x: this.mouseX, y: this.mouseY, phase: 'ended' };
-					this.dispatchObjectEvent(hoverObject, 'hover', hoverEvent);
+					var hoverEvent = { x: this.mouseX, y: this.mouseY, phase: ended };
+					this.dispatchObjectEvent(hoverObject, hover, hoverEvent);
 				}
 			}
 			return hoverObject;
@@ -1916,7 +1923,7 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	newCircle(x, y, radius) {
-		var criclePath = new ZetoEnginePath();
+		var criclePath = new ZetoPath();
 		criclePath.arc(0, 0, radius, 0, 2 * pi, false);
 
 		var circle = new ZetoEngineObject(this, criclePath, x, y);
@@ -1924,7 +1931,7 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	newRoundedRect(x, y, width, height, radius) {
-		var roundedRectPath = new ZetoEnginePath();
+		var roundedRectPath = new ZetoPath();
 		roundedRectPath.roundRect(-width * 0.5, -height * 0.5, width, height, radius);
 
 		var roundedRect = new ZetoEngineObject(this, roundedRectPath, x, y);
@@ -1932,7 +1939,7 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	newRect(x, y, width, height) {
-		var rectPath = new ZetoEnginePath();
+		var rectPath = new ZetoPath();
 		rectPath.rect(-width * 0.5, -height * 0.5, width, height);
 
 		var rect = new ZetoEngineObject(this, rectPath, x, y);
@@ -1940,7 +1947,7 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	newPolygon(x, y, vertices) {
-		var polygonPath = new ZetoEnginePath();
+		var polygonPath = new ZetoPath();
 		for (var vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
 			var vertex = vertices[vertexIndex];
 			if (vertexIndex == 0) {
@@ -2037,7 +2044,7 @@ class ZetoEngine extends ZetoEventObject {
 		numAssets += audio ? audio.length : 0;
 		numAssets += data ? data.length : 0;
 
-		let loadedFromCache = {
+		var loadedFromCache = {
 			image: {},
 			audio: {},
 			data: {},
@@ -2238,6 +2245,23 @@ class ZetoEngine extends ZetoEventObject {
 			}
 		}
 	}
+
+	#preventDefault(event) {
+		event.preventDefault();
+	}
+
+	setCanvasLock(value) {
+		this.canvasLocked = value;
+		if (value) {
+			for (var lockIndex = 0; lockIndex < lockCanvasEvents.length; lockIndex++) {
+				this.canvas.addEventListener(lockCanvasEvents[lockIndex], this.#preventDefault);
+			}
+		} else {
+			for (var lockIndex = 0; lockIndex < lockCanvasEvents.length; lockIndex++) {
+				this.canvas.removeEventListener(lockCanvasEvents[lockIndex], this.#preventDefault);
+			}
+		}
+	}
 }
 
 class ZetoEngineAudio {
@@ -2298,13 +2322,26 @@ class ZetoEngineAudio {
 	}
 }
 
-class ZetoEnginePath {
+class ZetoPath {
+	// TODO: this is a work in progress and very fragile
+
 	path = new Path2D();
+	
+	internal = {
+		width: 0,
+		height: 0,
+		radius: 0,
+
+		xScale: 1,
+		yScale: 1,
+
+		setWidth: 0,
+		setHeight: 0,
+		setRadius: 0,
+	};
+
 	x = 0;
 	y = 0;
-	width = 0;
-	height = 0;
-	radius = 0;
 	maxX = 0;
 	minX = 0;
 	maxY = 0;
@@ -2313,13 +2350,49 @@ class ZetoEnginePath {
 	top = 0;
 	left = 0;
 
+	set width(value) {
+		this.internal.setWidth = value;
+		this.internal.xScale = value / this.internal.width;
+		this.updateBoundsWidth();
+	}
+
+	set height(value) {
+		this.internal.setHeight = value;
+		this.internal.yScale = value / this.internal.height;
+		this.updateBoundsHeight();
+	}
+
+	set radius(value) {
+		this.internal.setRadius = value;
+		let scale = value / this.internal.radius;
+		this.internal.xScale = scale;
+		this.internal.yScale = scale;
+		this.updateBoundsRadius();
+	}
+
+	get width() {
+		return this.internal.setWidth;
+	}
+
+	get height() {
+		return this.internal.setHeight;
+	}
+
+	get radius() {
+		return this.internal.setRadius;
+	}
+
 	rect(x, y, width, height) {
 		this.x = x;
 		this.y = y;
-		this.width = width;
-		this.height = height;
+		this.internal.width = width;
+		this.internal.height = height;
 
-		this.updateBounds();
+		this.internal.setWidth = width;
+		this.internal.setHeight = height;
+
+		this.updateBoundsWidth();
+		this.updateBoundsHeight();
 
 		return this.path.rect(x, y, width, height);
 	}
@@ -2327,11 +2400,16 @@ class ZetoEnginePath {
 	roundRect(x, y, width, height, radius) {
 		this.x = x;
 		this.y = y;
-		this.width = width;
-		this.height = height;
-		this.radius = radius;
+		this.internal.width = width;
+		this.internal.height = height;
+		this.internal.radius = radius; 
 
-		this.updateBounds();
+		this.internal.setWidth = width;
+		this.internal.setHeight = height;
+		this.internal.setRadius = radius;
+
+		this.updateBoundsWidth();
+		this.updateBoundsHeight();
 
 		return this.path.roundRect(x, y, width, height, radius);
 	}
@@ -2340,7 +2418,7 @@ class ZetoEnginePath {
 		this.x = x;
 		this.y = y;
 
-		this.updateBounds();
+		this.updateBoundsLine();
 
 		return this.path.moveTo(x, y);
 	}
@@ -2349,7 +2427,7 @@ class ZetoEnginePath {
 		this.x = x;
 		this.y = y;
 
-		this.updateBounds();
+		this.updateBoundsLine();
 
 		return this.path.lineTo(x, y);
 	}
@@ -2359,21 +2437,52 @@ class ZetoEnginePath {
 	}
 
 	arc(x, y, radius, startAngle, endAngle, anticlockwise) {
-		//TODO: update bounds x +- radius, y +- radius and properties
+		this.x = x;
+		this.y = y;
+		this.internal.radius = radius;
+
+		this.updateBoundsRadius();
+
 		return this.path.arc(x, y, radius, startAngle, endAngle, anticlockwise);
 	}
 
-	updateBounds() {
-		var halfWidth = this.width * 0.5;
-		var halfHeight = this.height * 0.5;
-
-		this.top = -halfHeight;
+	updateBoundsWidth() {
+		var halfWidth = this.internal.setWidth * 0.5;
 		this.left = -halfWidth;
-
 		this.maxX = this.x + halfWidth > this.maxX ? this.x + halfWidth : this.maxX;
-		this.maxY = this.y + halfHeight > this.maxY ? this.y + halfHeight : this.maxY;
 		this.minX = this.x - halfWidth < this.minX ? this.x - halfWidth : this.minX;
+	}
+
+	updateBoundsHeight() {
+		var halfHeight = this.internal.setHeight * 0.5;
+		this.top = -halfHeight;
+		this.maxY = this.y + halfHeight > this.maxY ? this.y + halfHeight : this.maxY;
 		this.minY = this.y - halfHeight < this.minY ? this.y - halfHeight : this.minY;
+	}
+
+	updateBoundsRadius() {
+		this.maxX = this.x + this.internal.radius > this.maxX ? this.x + this.internal.radius : this.maxX;
+		this.minX = this.x - this.internal.radius < this.minX ? this.x - this.internal.radius : this.minX;
+		this.maxY = this.y + this.internal.radius > this.maxY ? this.y + this.internal.radius : this.maxY;
+		this.minY = this.y - this.internal.radius < this.minY ? this.y - this.internal.radius : this.minY;
+
+		this.left = this.minX;
+		this.top = this.minY;
+	}
+
+	updateBoundsLine() {
+		this.maxX = this.x > this.maxX ? this.x : this.maxX;
+		this.minX = this.x < this.minX ? this.x : this.minX;
+		this.maxY = this.y > this.maxY ? this.y : this.maxY;
+		this.minY = this.y < this.minY ? this.y : this.minY;
+
+		this.left = this.minX;
+		this.top = this.minY;
+
+		this.internal.width = this.maxX - this.minX;
+		this.internal.height = this.maxY - this.minY;
+		this.internal.setWidth = this.internal.width;
+		this.internal.setHeight = this.internal.height;
 	}
 }
 ///////////////////////////////////////////// Particles
@@ -3054,7 +3163,7 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 			var bodyA = matterBodyA.zBody;
 			var bodyB = matterBodyB.zBody;
 
-			var phase = event.name == 'collisionStart' ? 'began' : 'end';
+			var phase = event.name == 'collisionStart' ? began : end;
 
 			if (bodyA.hasEventListener('collision')) {
 				bodyA.dispatchEvent('collision', { phase: phase, target: bodyA, other: bodyB, collision: pair.collision });
@@ -3085,6 +3194,7 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 		context.scale(body.object.internal.xScaleInverse, body.object.internal.yScaleInverse);
 		context.lineWidth = 1;
 		context.fillStyle = body.debugColor ?? this.debugColor;
+		// TODO: missing path scale
 		context.fill(body.path.path);
 	}
 
@@ -3192,7 +3302,7 @@ class ZetoPhysicsBody extends ZetoEventObject {
 
 	createPath() {
 		var vertices = this.matterBody.vertices;
-		this.path = new ZetoEnginePath();
+		this.path = new ZetoPath();
 		for (var vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
 			var vertex = vertices[vertexIndex];
 			this.path.lineTo(vertex.x - this.object.x, vertex.y - this.object.y);

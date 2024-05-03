@@ -216,6 +216,7 @@ Other functions available in the Engine class are:
  - *engine.step()* Steps the engine one frame
  - *engine.getInfo(property)* Gets information about the engine, available properties are `isMobile`
  - *engine.setFullscreen(value)* Sets the engine to fullscreen mode (iOS on iPhones does not support fullscreen)
+ - *engine.setCanvasLock(value)* Locks all scrolling when the canvas is touched. Useful for games that need a steady canvas
 
 When using `load` and `unload`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `load` will call the exported `create` function in the module, and `unload` will call the exported `destroy` function in the module.
 
