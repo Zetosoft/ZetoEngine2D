@@ -10,7 +10,7 @@ For a live demo, visit [ZetoEngine2D author page](https://basiliogerman.com). Wo
 - Place `zeto.js` in your javascript folder or its own folder. your game files should be in the same folder as `zeto.js` or a subfolder.
 - ZetoEngine2D uses Matter.js for physics. You can include it in your project by including the `matter.js` file in your project. ZetoEngine2D uses version 0.19.0. Future versions might also work, but are not tested. If you do not include Matter.js, the engine will still work, but you will not be able to use physics. Matter.js should be loaded before `zeto.js`.
 - ZetoEngine2D will load any game files relative to the location of `zeto.js`. This means that if you have a file in a subfolder, you can include it in your game by using the path relative to `zeto.js`.
-- Your HTML file should include a canvas element with the id `canvas`. This is where the game will be rendered. The engine will automatically resize the canvas to fit the window. You can also set the canvas size manually by setting the width and height attributes of the canvas element.
+- Your HTML file should include a canvas element with the id `canvas`. This is where the game will be rendered. You can also include an optional `canvas` parameter in the `new Engine()` call to specify a different canvas id.
 - The following is an HTML template for your game. You can copy and paste this into your project and modify it as needed. This template loads the engine and the game files. The engine is started with the `new Engine()` call. The `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. In this case, ZetoEngine2D would look for a file inside `/js/game/` called `main.js`.
 
 ```html
@@ -215,6 +215,7 @@ Other functions available in the Engine class are:
  - *engine.resume()* Resumes the engine
  - *engine.step()* Steps the engine one frame
  - *engine.getInfo(property)* Gets information about the engine, available properties are `isMobile`
+ - *engine.setFullscreen(value)* Sets the engine to fullscreen mode (iOS on iPhones does not support fullscreen)
 
 When using `load` and `unload`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `load` will call the exported `create` function in the module, and `unload` will call the exported `destroy` function in the module.
 

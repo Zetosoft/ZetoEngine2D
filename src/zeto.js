@@ -81,8 +81,13 @@ class ZetoEventObject {
 		}
 	}
 
-	hasEventListener(eventName) {
-		return (this.listeners[eventName] && (this.listeners[eventName].length > 0)) ? this : false;
+	hasEventListener(eventName, listener) {
+		var hasListeners = this.listeners[eventName] && this.listeners[eventName].length > 0;
+		if (!listener) {
+			return hasListeners ? this : false;
+		} else {
+			return (hasListeners && this.listeners[eventName].indexOf(listener) > -1) ? this : false;
+		}
 	}
 
 	destroy() {
@@ -1299,6 +1304,7 @@ class ZetoEngine extends ZetoEventObject {
 		var loadedListener = options.loadedListener ?? false;
 		var progressListener = options.progressListener ?? false
 		var smoothing = options.smoothing ?? false;
+		var canvas = options.canvas ?? 'canvas';
 
 		this.rootGroup = new ZetoGroup(this);
 		this.physics = new ZetoPhysicsEngine(this);
@@ -1306,6 +1312,8 @@ class ZetoEngine extends ZetoEventObject {
 		this.transition = new ZetoTransitionEngine(this);
 		this.widgets = new ZetoWidgets(this);
 		this.strings = new ZetoStrings(this);
+
+		document.addEventListener('touchstart', {}); // Enables touch events on iOS if embedded in iframe
 
 		window.addEventListener('visibilitychange', this.visibilityChange.bind(this));
 
@@ -1324,7 +1332,7 @@ class ZetoEngine extends ZetoEventObject {
 		window.addEventListener('keyup', this.keyUp.bind(this));
 
 		this.initAudioListeners();
-		this.initCanvas(smoothing);
+		this.initCanvas(smoothing, canvas);
 
 		window.onunload = function (event) {
 			event.preventDefault();
@@ -1538,8 +1546,8 @@ class ZetoEngine extends ZetoEventObject {
 		this.addEventListener('key', this.initAudioBind);
 	}
 
-	initCanvas(smoothing = false) {
-		this.canvas = document.getElementById('canvas');
+	initCanvas(smoothing = false, canvasId = 'canvas') {
+		this.canvas = document.getElementById(canvasId);
 		this.context = canvas.getContext('2d');
 		this.resizeCanvas();
 
@@ -2209,6 +2217,26 @@ class ZetoEngine extends ZetoEventObject {
 
 	getInfo(property) {
 		return this.info[property];
+	}
+
+	setFullscreen(value) {
+		if (value) {
+			if (this.canvas.requestFullscreen) {
+				this.canvas.requestFullscreen();
+			} else if (this.canvas.webkitRequestFullscreen) {
+				this.canvas.webkitRequestFullscreen();
+			} else if (this.canvas.msRequestFullscreen) {
+				this.canvas.msRequestFullscreen();
+			}
+		} else {
+			if (document.exitFullscreen) {
+				document.exitFullscreen();
+			} else if (document.webkitExitFullscreen) {
+				document.webkitExitFullscreen();
+			} else if (document.msExitFullscreen) {
+				document.msExitFullscreen();
+			}
+		}
 	}
 }
 
