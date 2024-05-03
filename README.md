@@ -205,7 +205,12 @@ Other functions available in the Engine class are:
 
  - *engine.performWithDelay(delay, listener, iterations = 1)* Calls a function after a delay in milliseconds, returns a timer object
  - *engine.cancelTimer(timer)* Cancels a timer created with performWithDelay
- - *engine.getImageFill(id)* Returns an image fill object, to be used with engine objects that have the `fill` property
+ - *engine.getImageFill(id, pattern, repeat = 'repeat')* Returns an image fill object, to be used with engine objects that have the `fill` property. The pattern can be `repeat`, `repeat-x`, `repeat-y`, `no-repeat`. The fill object has the following properties:
+   - *fill.x* The x position of the fill
+   - *fill.y* The y position of the fill
+   - *fill.xScale* The x scale of the fill
+   - *fill.yScale* The y scale of the fill
+   - *fill.rotation* The rotation of the fill
  - *engine.getData(id)* Returns a data object, loaded previously with the `loadAssets` function, used to load JSON data, and can be used to create particle emitters
  - *engine.async playAudio(id, volume = 1, time = 0, loop = false, onComplete = false)* Plays an audio file, returns an audio object
  - *engine.loadAssets(images, audio, data, onComplete, onProgress)* Loads assets, calls onComplete when all assets are loaded, and onProgress while assets are loading, use along with the `create` `event.complete` and `event.progress` functions
@@ -222,6 +227,13 @@ When using `load` and `unload`, the `moduleName` parameter is the name of the mo
 
 The `loadedListener` and the `progressListener` function will be called when you call the `complete` and `progress` functions in the module. `unloadedListener` will be called when you call the `complete` function as well, but inside the `destroy` function. The `complete` and `progress` functions accept a function as a parameter, and this function will be called after the external `loadedListener`, `progressListener` or `unloadedListener` functions are called.
 
+With the `engine.getImageFill` function, you can create for example a rounded rectangle with an image fill. The following example creates a rounded rectangle with an image fill:
+
+```javascript
+let roundedRect = engine.newRoundedRect(0, 0, 380, 300, 20);
+roundedRect.fill = engine.getImageFill("win-bg", true);
+```
+	
 ### Event Objects
 
 All objects, including the engine, transition, particle and physics engine are event objects, this means that you can add event listeners to them. The following functions are available in the Event Object class. 

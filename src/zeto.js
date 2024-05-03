@@ -1999,8 +1999,20 @@ class ZetoEngine extends ZetoEventObject {
 		return this.rootGroup.insert(sprite, true);
 	}
 
-	getImageFill(id) {
-		return this.loadedImages[id];
+	getImageFill(id, pattern, repeat = 'repeat') {
+		var fill = this.loadedImages[id];
+		if (fill && pattern) {
+			return {
+				pattern: this.context.createPattern(fill.image, repeat),
+				x: fill.image.width * 0.5,
+				y: fill.image.height * 0.5,
+				xScale: 1,
+				yScale: 1,
+				rotation: 0,
+			};
+		} else {
+			return fill;
+		}
 	}
 
 	getData(id) {
