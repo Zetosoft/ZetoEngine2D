@@ -34,7 +34,7 @@ For a live demo, visit [ZetoEngine2D author page](https://basiliogerman.com). Wo
 
 The following is an example of a game module. This module is located in `js/game/main.js`. The module should export two functions: `create` and `destroy`. The `create` function is called when the game is started, and the `destroy` function is called when the game is stopped. The `create` function should load assets and set up the game, while the `destroy` function should clean up any resources used by the game. This template shows how to load assets and set up a loading screen. The `onAssetsProgress` function is called while assets are loading, and the `onAssetsLoaded` function is called when all assets are loaded. The `resizeLoadingListener` function is called when the window is resized and resizes the loading bar to fit the window. The `createLoadingGroup` function creates the loading screen. The `create` function creates the loading screen and loads assets. The `destroy` does nothing since we do not switch scenes in this example.
 
-One of the most important aspects is that you will receive the engine object as a parameter in the create & destroy functions. This object is used to used to create objects, load assets, play sounds and more. 
+One of the most important aspects is that you will receive the engine object as a parameter in the create & destroy functions. This object is used to used to create objects, load assets, play sounds and more. A complete list of the engine object properties and functions is available in the API Reference section. The following is an example of a game module:
 
 ```javascript
 var persistedString = localStorage.getItem('persisted');
@@ -142,9 +142,11 @@ export function create(event) {
 }
 
 export function destroy(event) {
-
+	event.complete();
 }
 ```
+
+Don't forget to make your games responsive! The engine will dispatch a `resize` event when the window is resized. You can listen to this event and adjust your game accordingly.
 
 ## API Reference
 
@@ -203,18 +205,18 @@ The following functions create Engine Objects.
 
 Other functions available in the Engine class are:
 
- - **engine.performWithDelay(delay, listener, iterations = 1)** Calls a function after a delay in milliseconds, returns a timer object
+ - **engine.performWithDelay(delay, listener, iterations = 1)** Calls a function after a delay in milliseconds, returns a timer object. The listener function will receive the timer object as a `target` property
  - **engine.cancelTimer(timer)** Cancels a timer created with performWithDelay
- - **engine.getImageFill(id, pattern, repeat = 'repeat')** Returns an image fill object, to be used with engine objects that have the `fill` property. The pattern can be `repeat`, `repeat-x`, `repeat-y`, `no-repeat`. The fill object has the following properties:
+ - **engine.getImageFill(id, pattern, repeat = 'repeat')** Returns an image fill object, to be used with engine objects that have the `fill` property. The pattern is optional and can be `repeat`, `repeat-x`, `repeat-y`, `no-repeat`. The fill object can be transitioned and has the following properties:
 	- **fill.x** The x position of the fill
 	- **fill.y** The y position of the fill
 	- **fill.xScale** The x scale of the fill
 	- **fill.yScale** The y scale of the fill
 	- **fill.rotation** The rotation of the fill
  - **engine.getData(id)** Returns a data object, loaded previously with the `loadAssets` function, used to load JSON data, and can be used to create particle emitters
- - **engine.async playAudio(id, volume = 1, time = 0, loop = false, onComplete = false)** Plays an audio file, returns an audio object
+ - **engine.async playAudio(id, volume = 1, time = 0, loop = false, onComplete = false)** Plays an audio file, returns an audio object, further documentation below
  - **engine.loadAssets(images, audio, data, onComplete, onProgress)** Loads assets, calls onComplete when all assets are loaded, and onProgress while assets are loading, use along with the `create` `event.complete` and `event.progress` functions
- - **engine.async load(moduleName, params, loadedListener, progressListener)** Loads a module, calls loadedListener when the module is loaded, and progressListener for each asset loaded
+ - **engine.async load(moduleName, params, loadedListener, progressListener)** Loads a module, calls loadedListener when the module is loaded, and progressListener for each asset loaded. `moduleName` must be in dot format, for example `game.main` like in Lua.
  - **engine.async unload(moduleName, params, unloadedListener)** Unloads a module, calls unloadedListener when `event.complete` is called inside the `destroy` function on the module being unloaded
  - **engine.pause()** Pauses the engine
  - **engine.resume()** Resumes the engine
@@ -226,9 +228,61 @@ Other functions available in the Engine class are:
 
 When using `load` and `unload`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `load` will call the exported `create` function in the module, and `unload` will call the exported `destroy` function in the module.
 
-The `loadedListener` and the `progressListener` function will be called when you call the `complete` and `progress` functions in the module. `unloadedListener` will be called when you call the `complete` function as well, but inside the `destroy` function. The `complete` and `progress` functions accept a function as a parameter, and this function will be called after the external `loadedListener`, `progressListener` or `unloadedListener` functions are called.
+The `loadedListener` and the `progressListener` function will be called when you call the `complete` and `progress` functions in the module. `unloadedListener` will be called when you call the `complete` function as well, but inside the `destroy` function. on `create`, The `event.complete()` and `event.progress()` functions accept a function as a parameter, and this function will be called after the external `loadedListener`, `progressListener` or `unloadedListener` functions are called. For example:
 
-With the `engine.getImageFill` function, you can create for example a rounded rectangle with an image fill. The following example creates a rounded rectangle with an image fill:
+```html
+<script src="/js/arcade/matter.js"></script>
+<script src="/js/arcade/zeto.js"></script>
+<script type="module">
+	var engine = new ZetoEngine({
+		moduleName: 'menu',
+		moduleParams: {
+			locale: myJSLocaleFunction(),
+		},
+		loadedListener: function(event) {
+			myJSFunction(event.result.hello); // Will output 'world'
+		},
+		unloadedListener: function(event) {
+			myJSFunction('Module unloaded');
+		},
+		smoothing: true,
+	});
+	engine.clearColor = "white";
+	engine.fillColor = "black";
+</script>
+```
+
+```javascript
+function onAssetsProgress(event) {
+	// Assumes you have a loadingText object
+	loadingText.text = 'Loading assets ... ' + Math.floor(event.progress * 100) + '%';
+}
+
+function onAssetsLoaded(event) {
+	// Assumes you have a createLoadingText() function
+	createLoadingText();
+
+	return { // This object will be passed to the external `loadedListener` function in the HTML script
+		hello: 'world',
+	}
+}
+
+export function create(event) {
+	engine = event.engine;
+
+	let locale = event.params.locale;
+	
+	// This will fire `onAssetsLoaded` after all assets are loaded and then the `loadedListener` in the HTML script
+	// Same for progress, it will fire `onAssetsProgress` and then the `progressListener` in the HTML script (If any)
+	engine.loadAssets(images, audio, data, event.complete(onAssetsLoaded), event.progress(onAssetsProgress));
+}
+
+export function destroy(event) {
+	event.complete(); // Does not accept parameter, makes `unloadedListener` function in the HTML script be called
+}
+```
+
+With the `engine.getImageFill` function, you can create for example a rounded rectangle, circle or polygon with an image fill. The following example creates a rounded rectangle with an image fill:
 
 ```javascript
 let roundedRect = engine.newRoundedRect(0, 0, 380, 300, 20);
@@ -416,8 +470,8 @@ Transition parameters are passed as an object to the `to` and `from` functions. 
  - **params.delay = 0** The delay in milliseconds before the transition starts
  - **params.time = 300** The time in milliseconds for the transition
  - **params.easing** The easing function to use for the transition
- - **params.onStart** The function to call when the transition starts, after the delay
- - **params.onComplete** The function to call when the transition is complete
+ - **params.onStart** The function or array of functions to call when the transition starts, after the delay
+ - **params.onComplete** The function or array of functions to call when the transition is complete
 
  #### Easing Functions
 
@@ -450,7 +504,7 @@ function linear(t, tMax, start, delta) {
 engine.transition.to(object, { x: 100, y: 100, time: 1000, easing: Easing.outQuad });
 ```
 
- - Make an object transition to other object position in 1 second and call a function when the transition is complete
+ - Make an object transition to other object position in 1 second, and call a function when the transition is complete. This will move `object.x` to `otherObject.x` and `object.y` to `otherObject.y`
 
 ```javascript
 engine.transition.to(object, { x: otherObject, y: otherObject, time: 1000, easing: Easing.outQuad, onComplete: function(event) {
@@ -464,7 +518,17 @@ engine.transition.to(object, { x: otherObject, y: otherObject, time: 1000, easin
 engine.transition.to(coinCounterText, { text: newValue, time: 1000, easing: Easing.outQuad });
 ```
 
-Thats right! You can animate values to other objects and numeric text properties too!
+- Multiple listeners can be added to the `onComplete` property, like this:
+
+```javascript
+engine.transition.to(object, { x: 100, y: 100, time: 1000, easing: Easing.outQuad, onComplete: [function(event) {
+	console.log('Transition complete');
+}, function(event) {
+	console.log('Another function');
+}]});
+```
+
+Thats right! You can animate values to other objects, numeric text properties, and call multiple listeners using `onStart` and `onComplete` properties. The `onStart` property will be called after the delay, and the `onComplete` property will be called when the transition is complete.
 
 ### Particle Engine
 
