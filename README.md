@@ -154,75 +154,75 @@ The ZetoEngine2D API is similar to Solar2D. The following is a rough outline of 
 
 The Engine class is the main class of the ZetoEngine2D. It is responsible for rendering the game, loading assets, and managing the game loop. The following properties and functions are available in the Engine class. Most of the properties are meant to be read-only, but some can be modified to change the behavior of the engine.
 
- - *engine.debug = false* Set to true to enable visual debug mode
- - *engine.debugTapColor = '#FF00FFBB'*
- - *engine.debugBoundsColor = '#FF0000BB'*
- - *engine.debugColor = '#FFFFFFBB'*
- - *engine.mouseX = 0* Read only value of the mouse x position
- - *engine.mouseY = 0* Read only value of the mouse y position
- - *engine.tapTime = 200* Time in milliseconds to consider a touch event as a tap
- - *engine.rootGroup* The root group of the engine, all objects are inserted into this group by default
- - *engine.fillColor = 'white'* Default fill color for objects
- - *engine.clearColor = 'black'* Default clear color for the canvas
- - *engine.clearAlpha = 1* Default clear alpha for the canvas, any value between 0 and 1, values below 1 will create a ghosting effect
- - *engine.defaultFontName = 'Arial'* Default font name for text objects
- - *engine.defaultFontSize = 20* Default font size for text objects
- - *engine.canvas* The canvas element
- - *engine.context* The canvas context
- - *engine.audioContext* The audio context
- - *engine.cX* Read only value of the center x position of the canvas
- - *engine.cY* Read only value of the center y position of the canvas
- - *engine.width* Read only value of the width of the canvas
- - *engine.height* Read only value of the height of the canvas
- - *engine.paused = false* Read only value of the paused state of the engine, use engine.pause(), engine.step() and engine.resume() to control the engine
- - *engine.showFPS = false* Set to true to show the frames per second in the top left corner
- - *engine.fps* Read only value of the frames per second
+ - **engine.debug = false** Set to true to enable visual debug mode
+ - **engine.debugTapColor = '#FF00FFBB'**
+ - **engine.debugBoundsColor = '#FF0000BB'**
+ - **engine.debugColor = '#FFFFFFBB'**
+ - **engine.mouseX = 0** Read only value of the mouse x position
+ - **engine.mouseY = 0** Read only value of the mouse y position
+ - **engine.tapTime = 200** Time in milliseconds to consider a touch event as a tap
+ - **engine.rootGroup** The root group of the engine, all objects are inserted into this group by default
+ - **engine.fillColor = 'white'** Default fill color for objects
+ - **engine.clearColor = 'black'** Default clear color for the canvas
+ - **engine.clearAlpha = 1** Default clear alpha for the canvas, any value between 0 and 1, values below 1 will create a ghosting effect
+ - **engine.defaultFontName = 'Arial'** Default font name for text objects
+ - **engine.defaultFontSize = 20** Default font size for text objects
+ - **engine.canvas** The canvas element
+ - **engine.context** The canvas context
+ - **engine.audioContext** The audio context
+ - **engine.cX** Read only value of the center x position of the canvas
+ - **engine.cY** Read only value of the center y position of the canvas
+ - **engine.width** Read only value of the width of the canvas
+ - **engine.height** Read only value of the height of the canvas
+ - **engine.paused = false** Read only value of the paused state of the engine, use engine.pause(), engine.step() and engine.resume() to control the engine
+ - **engine.showFPS = false** Set to true to show the frames per second in the top left corner
+ - **engine.fps** Read only value of the frames per second
 
 Other important properties containing other parts of the engine are:
 
- - *engine.transition* The transition engine, used to animate objects
- - *engine.particles* The particle engine, used to create particle systems
- - *engine.physics* The physics engine, used to create physics objects
- - *engine.widgets* The widgets engine, used to create buttons and other widgets
- - *engine.strings* The strings engine, used to localize strings
+ - **engine.transition** The transition engine, used to animate objects
+ - **engine.particles** The particle engine, used to create particle systems
+ - **engine.physics** The physics engine, used to create physics objects
+ - **engine.widgets** The widgets engine, used to create buttons and other widgets
+ - **engine.strings** The strings engine, used to localize strings
 
 The following functions create Engine Objects.
 
- - *engine.newGroup(x, y)* Creates a new group object
- - *engine.newCamera(x, y)* Creates a new camera object
- - *engine.newText(options)* Creates a new text object
- - *engine.newImage(id, x, y)* Creates a new image object
- - *engine.newImageRect(id, x, y, width, height)* Creates a new image rect object
- - *engine.newCircle(x, y, radius)* Creates a new circle object
- - *engine.newRoundedRect(x, y, width, height, radius)* Creates a new rounded rect object
- - *engine.newRect(x, y, width, height)* Creates a new rect object
- - *engine.newPolygon(x, y, vertices)* Creates a new polygon object
- - *engine.newImageSheet(id, sheetData)* Creates a new image sheet object, to be used with sprites or as a fill
- - *engine.newSprite(imageSheet, sequenceData, x = 0, y = 0)* Creates a new sprite object
- - *engine.remove(object)* Removes an object from the engine
+ - **engine.newGroup(x, y)** Creates a new group object
+ - **engine.newCamera(x, y)** Creates a new camera object
+ - **engine.newText(options)** Creates a new text object
+ - **engine.newImage(id, x, y)** Creates a new image object
+ - **engine.newImageRect(id, x, y, width, height)** Creates a new image rect object
+ - **engine.newCircle(x, y, radius)** Creates a new circle object
+ - **engine.newRoundedRect(x, y, width, height, radius)** Creates a new rounded rect object
+ - **engine.newRect(x, y, width, height)** Creates a new rect object
+ - **engine.newPolygon(x, y, vertices)** Creates a new polygon object
+ - **engine.newImageSheet(id, sheetData)** Creates a new image sheet object, to be used with sprites or as a fill
+ - **engine.newSprite(imageSheet, sequenceData, x = 0, y = 0)** Creates a new sprite object
+ - **engine.remove(object)** Removes an object from the engine
 
 Other functions available in the Engine class are:
 
- - *engine.performWithDelay(delay, listener, iterations = 1)* Calls a function after a delay in milliseconds, returns a timer object
- - *engine.cancelTimer(timer)* Cancels a timer created with performWithDelay
- - *engine.getImageFill(id, pattern, repeat = 'repeat')* Returns an image fill object, to be used with engine objects that have the `fill` property. The pattern can be `repeat`, `repeat-x`, `repeat-y`, `no-repeat`. The fill object has the following properties:
-   - *fill.x* The x position of the fill
-   - *fill.y* The y position of the fill
-   - *fill.xScale* The x scale of the fill
-   - *fill.yScale* The y scale of the fill
-   - *fill.rotation* The rotation of the fill
- - *engine.getData(id)* Returns a data object, loaded previously with the `loadAssets` function, used to load JSON data, and can be used to create particle emitters
- - *engine.async playAudio(id, volume = 1, time = 0, loop = false, onComplete = false)* Plays an audio file, returns an audio object
- - *engine.loadAssets(images, audio, data, onComplete, onProgress)* Loads assets, calls onComplete when all assets are loaded, and onProgress while assets are loading, use along with the `create` `event.complete` and `event.progress` functions
- - *engine.async load(moduleName, params, loadedListener, progressListener)* Loads a module, calls loadedListener when the module is loaded, and progressListener for each asset loaded
- - *engine.async unload(moduleName, params, unloadedListener)* Unloads a module, calls unloadedListener when `event.complete` is called inside the `destroy` function on the module being unloaded
- - *engine.pause()* Pauses the engine
- - *engine.resume()* Resumes the engine
- - *engine.step()* Steps the engine one frame
- - *engine.getInfo(property)* Gets information about the engine, available properties are `isMobile`
- - *engine.setFullscreen(value)* Sets the engine to fullscreen mode (iOS on iPhones does not support fullscreen)
- - *engine.setCanvasLock(value)* Locks all scrolling when the canvas is touched. Useful for games that need a steady canvas
- - *engine.getAsset(type, id)* Returns a raw asset object, used to get the raw image, audio or data object. The type can be `image`, `audio`, or `data`
+ - **engine.performWithDelay(delay, listener, iterations = 1)** Calls a function after a delay in milliseconds, returns a timer object
+ - **engine.cancelTimer(timer)** Cancels a timer created with performWithDelay
+ - **engine.getImageFill(id, pattern, repeat = 'repeat')** Returns an image fill object, to be used with engine objects that have the `fill` property. The pattern can be `repeat`, `repeat-x`, `repeat-y`, `no-repeat`. The fill object has the following properties:
+	- **fill.x** The x position of the fill
+	- **fill.y** The y position of the fill
+	- **fill.xScale** The x scale of the fill
+	- **fill.yScale** The y scale of the fill
+	- **fill.rotation** The rotation of the fill
+ - **engine.getData(id)** Returns a data object, loaded previously with the `loadAssets` function, used to load JSON data, and can be used to create particle emitters
+ - **engine.async playAudio(id, volume = 1, time = 0, loop = false, onComplete = false)** Plays an audio file, returns an audio object
+ - **engine.loadAssets(images, audio, data, onComplete, onProgress)** Loads assets, calls onComplete when all assets are loaded, and onProgress while assets are loading, use along with the `create` `event.complete` and `event.progress` functions
+ - **engine.async load(moduleName, params, loadedListener, progressListener)** Loads a module, calls loadedListener when the module is loaded, and progressListener for each asset loaded
+ - **engine.async unload(moduleName, params, unloadedListener)** Unloads a module, calls unloadedListener when `event.complete` is called inside the `destroy` function on the module being unloaded
+ - **engine.pause()** Pauses the engine
+ - **engine.resume()** Resumes the engine
+ - **engine.step()** Steps the engine one frame
+ - **engine.getInfo(property)** Gets information about the engine, available properties are `isMobile`
+ - **engine.setFullscreen(value)** Sets the engine to fullscreen mode (iOS on iPhones does not support fullscreen)
+ - **engine.setCanvasLock(value)** Locks all scrolling when the canvas is touched. Useful for games that need a steady canvas
+ - **engine.getAsset(type, id)** Returns a raw asset object, used to get the raw image, audio or data object. The type can be `image`, `audio`, or `data`
 
 When using `load` and `unload`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `load` will call the exported `create` function in the module, and `unload` will call the exported `destroy` function in the module.
 
@@ -238,94 +238,93 @@ roundedRect.fill = engine.getImageFill("win-bg", true);
 ### Event Objects
 
 All objects, including the engine, transition, particle and physics engine are event objects, this means that you can add event listeners to them. The following functions are available in the Event Object class. 
-
- - *object.addEventListener(eventName, listener)* Adds an event listener to the object
- - *object.removeEventListener(eventName, listener)* Removes an event listener from the object
- - *object.hasEventListener(eventName)* Returns true if the object has any listeners for the event
- - *object.dispatchEvent(eventName, event)* Dispatches an event to the object
+ - **object.addEventListener(eventName, listener)** Adds an event listener to the object
+ - **object.removeEventListener(eventName, listener)** Removes an event listener from the object
+ - **object.hasEventListener(eventName)** Returns true if the object has any listeners for the event
+ - **object.dispatchEvent(eventName, event)** Dispatches an event to the object
 
 Available events for the engine object are:
 
- - *enterframe* This event is called every frame before rendering the scene graph
- - *exitframe* This event is called every frame after rendering the scene graph
- - *resize* This event is called when the window is resized
- - *touch* This event is called when a touch event or mouse event is detected, excluding hovering the mouse
- - *wheel* This event is called when a mouse wheel event is detected
- - *tap* This event is called when a tap event is detected
- - *key* This event is called when a keyboard event is detected
+ - **enterframe** This event is called every frame before rendering the scene graph
+ - **exitframe** This event is called every frame after rendering the scene graph
+ - **resize** This event is called when the window is resized
+ - **touch** This event is called when a touch event or mouse event is detected, excluding hovering the mouse
+ - **wheel** This event is called when a mouse wheel event is detected
+ - **tap** This event is called when a tap event is detected
+ - **key** This event is called when a keyboard event is detected
 
 ### Engine Objects
 
 Engine objects are the main objects that are used to create the game. They can be created using the `engine.newGroup`, `engine.newText`, `engine.newImage`, `engine.newImageRect`, `engine.newCircle`, `engine.newRoundedRect`, `engine.newRect`, `engine.newPolygon`, `engine.newImageSheet`, `engine.newSprite`, `engine.newButton` functions. The following properties and functions are available in the Engine Object class. These are much like Solar2D Display Objects.
 
- - *object.fillColor* The fill color of the object, can be in hex format or a color name as it would in CSS
- - *object.alpha = 1* The alpha value of the object, any value between 0 and 1
- - *object.isVisible = true* If the object is visible or not
- - *object.parent* The parent group of the object
- - *object.x = 0* The x position of the object, relative to its parent
- - *object.y = 0* The y position of the object, relative to its parent
- - *object.strokeWidth = 0* The stroke width of the object if available
- - *object.stroke* The stroke color of the object if available, can be in hex format or a color name as it would in CSS
- - *object.width* The width of the object
- - *object.height* The height of the object
- - *object.anchorX = 0.5* The anchor x position of the object, any value between 0 and 1
- - *object.anchorY = 0.5* The anchor y position of the object, any value between 0 and 1
- - *object.rotation = 0* The rotation of the object in degrees
- - *object.xScale = 1* The x scale of the object
- - *object.yScale = 1* The y scale of the object
- - *object.fill* The fill object of the object, can be an image or a gradient
- - *object.path* The path object of the object, `ZetoEnginePath` object is a wrapper for a `Path2D` object
+ - **object.fillColor** The fill color of the object, can be in hex format or a color name as it would in CSS
+ - **object.alpha = 1** The alpha value of the object, any value between 0 and 1
+ - **object.isVisible = true** If the object is visible or not
+ - **object.parent** The parent group of the object
+ - **object.x = 0** The x position of the object, relative to its parent
+ - **object.y = 0** The y position of the object, relative to its parent
+ - **object.strokeWidth = 0** The stroke width of the object if available
+ - **object.stroke** The stroke color of the object if available, can be in hex format or a color name as it would in CSS
+ - **object.width** The width of the object
+ - **object.height** The height of the object
+ - **object.anchorX = 0.5** The anchor x position of the object, any value between 0 and 1
+ - **object.anchorY = 0.5** The anchor y position of the object, any value between 0 and 1
+ - **object.rotation = 0** The rotation of the object in degrees
+ - **object.xScale = 1** The x scale of the object
+ - **object.yScale = 1** The y scale of the object
+ - **object.fill** The fill object of the object, can be an image or a gradient
+ - **object.path** The path object of the object, `ZetoEnginePath` object is a wrapper for a `Path2D` object
 
 And the following functions are available in the Engine Object class.
 
- - *object.setFillColor(r, g, b, a = 1)* Sets the fill color of the object, values from 0 to 1
- - *object.destroy()* Destroys the object, same effect as calling `engine.remove(object)`
- - *object.toFront()* Brings the object to the front of its parent group
- - *object.toBack()* Sends the object to the back of its parent group
+ - **object.setFillColor(r, g, b, a = 1)** Sets the fill color of the object, values from 0 to 1
+ - **object.destroy()** Destroys the object, same effect as calling `engine.remove(object)`
+ - **object.toFront()** Brings the object to the front of its parent group
+ - **object.toBack()** Sends the object to the back of its parent group
 
 Available listeners are:
 
- - *tap* This event is called when a tap event is detected on the object
- - *touch* This event is called when a touch event or mouse event is detected on the object, excluding hovering the mouse. The event will have the following properties:
-   - *event.phase = 'began', 'moved', 'ended', 'hold'*
-   - *event.x* The x position of the touch event
-   - *event.y* The y position of the touch event
-   - *event.deltaX* The change in x position since the `began` phase
-   - *event.deltaY* The change in y position since the `began` phase
- - *hover* This event is called when a mouse hover event is detected on the object
- - *enterFrame* This event is called every frame before rendering the object
- - *exitFrame* This event is called every frame after rendering the object
- - *finalize* This event is called when the object is destroyed
+ - **tap** This event is called when a tap event is detected on the object
+ - **touch** This event is called when a touch event or mouse event is detected on the object, excluding hovering the mouse. The event will have the following properties:
+	- **event.phase = 'began', 'moved', 'ended', 'hold'**
+	- **event.x** The x position of the touch event
+	- **event.y** The y position of the touch event
+	- **event.deltaX** The change in x position since the `began` phase
+	- **event.deltaY** The change in y position since the `began` phase
+ - **hover** This event is called when a mouse hover event is detected on the object
+ - **enterFrame** This event is called every frame before rendering the object
+ - **exitFrame** This event is called every frame after rendering the object
+ - **finalize** This event is called when the object is destroyed
 
 #### Groups
 
 Groups are used to group objects together. They can be created using the `engine.newGroup` function. The following properties and functions are available in the Group class.
 
- - *group.children* An array of the children of the group
- - *group.anchorChildren = false* If true, the children of the group will be anchored to the group, this makes the group have `width` and `height` properties
+ - **group.children** An array of the children of the group
+ - **group.anchorChildren = false** If true, the children of the group will be anchored to the group, this makes the group have `width` and `height` properties
 
 And the following function:
 
- - *group.insert(object, skipUpdate = false)* Inserts an object into the group, if `skipUpdate` is true, the group will not update its bounds. Use for faster insertion of objects
+ - **group.insert(object, skipUpdate = false)** Inserts an object into the group, if `skipUpdate` is true, the group will not update its bounds. Use for faster insertion of objects
 
 #### Text
 
 Text objects are used to display text. They can be created using the `engine.newText(options)` function. The following are accepted options for the text object:
 
- - *options.fontName* The font name of the text. Default is `engine.defaultFontName`
- - *options.fontSize* The font size of the text. Default is `engine.defaultFontSize`
- - *options.text* The text to display
- - *options.width* The width of the text object, if set, the text will wrap to this width
- - *options.align* The alignment of the text, can be `left`, `center`, or `right`, default is `center`
- - *options.x* The x position of the text object
- - *options.y* The y position of the text object
- - *options.spacing* The spacing between lines of multi line text, default is 0.5
+ - **options.fontName** The font name of the text. Default is `engine.defaultFontName`
+ - **options.fontSize** The font size of the text. Default is `engine.defaultFontSize`
+ - **options.text** The text to display
+ - **options.width** The width of the text object, if set, the text will wrap to this width
+ - **options.align** The alignment of the text, can be `left`, `center`, or `right`, default is `center`
+ - **options.x** The x position of the text object
+ - **options.y** The y position of the text object
+ - **options.spacing** The spacing between lines of multi line text, default is 0.5
 
 Text supports the newline character `\n` for multiline text. The following properties and functions are available in the Text class.
 
- - *text.text* The text to display
- - *text.fontName* The font name of the text
- - *text.fontSize* The font size of the text
+ - **text.text** The text to display
+ - **text.fontName** The font name of the text
+ - **text.fontSize** The font size of the text
 
 #### Sprites
 
@@ -333,14 +332,14 @@ Sprites are used to animate images. They can be created using the `engine.newSpr
 
 The following properties and functions are available in the Sprite class.
 
- - *sprite.frame* The current frame of the sprite
- - *sprite.playing = false* If the sprite is playing
+ - **sprite.frame** The current frame of the sprite
+ - **sprite.playing = false** If the sprite is playing
 
 And the following functions:
 
- - *sprite.setSequence(sequenceName)*
- - *sprite.play()*
- - *sprite.stop()*
+ - **sprite.setSequence(sequenceName)**
+ - **sprite.play()**
+ - **sprite.stop()**
 
  #### Sprite Example
 
@@ -361,12 +360,12 @@ coinSprite.play();
 
 The widgets class is responsible for creating and managing widgets. It can be accessed through the `engine.widgets` property. The following functions are available in the Widgets class. The widgets class is still in development and is subject to change. The syntax is similar to Solar2D, but with more customization options.
 
- - *engine.widgets.newButton(options)* Creates a new button widget
- - *engine.widgets.setEnabled(enabled, tag)* Enables or disables all widgets. If an optional tag is provided, only widgets with the same tag will be enabled or disabled
+ - **engine.widgets.newButton(options)** Creates a new button widget
+ - **engine.widgets.setEnabled(enabled, tag)** Enables or disables all widgets. If an optional tag is provided, only widgets with the same tag will be enabled or disabled
 
 The widgets engine dispatches the following events:
 
- - *enabled* This event is called when the widgets are enabled or disabled
+ - **enabled** This event is called when the widgets are enabled or disabled
 
 #### Buttons
 
@@ -374,33 +373,33 @@ Similar to Solar2D widget library, with a bit more customization for frames, you
 
 The following options are available when creating a button with the `engine.widgets.newButton(options)` function:
 
- - *options.sheet* The image sheet object to use for the button. The sheet should contain the frames for the button states
- - *options.shape* The shape of the button, can be `rect`, `roundedRect`, `circle`
- - *options.labelXOffset* The x offset of the label, relative to the button
- - *options.labelYOffset* The y offset of the label, relative to the button
- - *options.labelAnchorX* The x anchor of the label, any value between 0 and 1
- - *options.labelAnchorY* The y anchor of the label, any value between 0 and 1
- - *options.labelColor* The color of the label
- - *options.font* The font of the label
- - *options.fontSize* The font size of the label
- - *options.label* The text of the label
- - *options.labelAlign* The alignment of the label, can be `left`, `center`, `right`
- - *options.onTap;* The function to call when the button is tapped
- - *options.onRelease;* The function to call when the button is released
- - *options.onHold;* The function to call when the button is held
- - *options.onPress;* The function to call when the button is pressed
- - *options.tag* A tag to identify the button, used to disable or enable the button collectively with `engine.widgets.setEnabled(enabled, tag)` the default tag is `default`
+ - **options.sheet** The image sheet object to use for the button. The sheet should contain the frames for the button states
+ - **options.shape** The shape of the button, can be `rect`, `roundedRect`, `circle`
+ - **options.labelXOffset** The x offset of the label, relative to the button
+ - **options.labelYOffset** The y offset of the label, relative to the button
+ - **options.labelAnchorX** The x anchor of the label, any value between 0 and 1
+ - **options.labelAnchorY** The y anchor of the label, any value between 0 and 1
+ - **options.labelColor** The color of the label
+ - **options.font** The font of the label
+ - **options.fontSize** The font size of the label
+ - **options.label** The text of the label
+ - **options.labelAlign** The alignment of the label, can be `left`, `center`, `right`
+ - **options.onTap;** The function to call when the button is tapped
+ - **options.onRelease;** The function to call when the button is released
+ - **options.onHold;** The function to call when the button is held
+ - **options.onPress;** The function to call when the button is pressed
+ - **options.tag** A tag to identify the button, used to disable or enable the button collectively with `engine.widgets.setEnabled(enabled, tag)` the default tag is `default`
 
 You will also have access to the following properties in the button object:
 
- - *button.defaultGroup* The default frame group, can be used to insert icons or other objects
- - *button.pressedGroup* The pressed frame group, can be used to insert icons or other objects
- - *button.disabledGroup* The disabled frame group, can be used to insert icons or other objects
+ - **button.defaultGroup** The default frame group, can be used to insert icons or other objects
+ - **button.pressedGroup** The pressed frame group, can be used to insert icons or other objects
+ - **button.disabledGroup** The disabled frame group, can be used to insert icons or other objects
 
 And the following functions:
 
- - *setEnabled(enabled)* Enables or disables the button
- - *setLabel(label)* Sets the label of the button
+ - **setEnabled(enabled)** Enables or disables the button
+ - **setLabel(label)** Sets the label of the button
 
 Note that if `engine.widgets.setEnabled(false, tag)` is called, even before the button is created, all buttons with the same or default tag will be disabled. You can enable or disable all widgets with this function. This is useful for creating a pause menu or other UI elements that need to be disabled when the game is paused, this way, all buttons on the game will be disabled and the ones on the pause menu can be enabled.
 
@@ -408,32 +407,32 @@ Note that if `engine.widgets.setEnabled(false, tag)` is called, even before the 
 
 The Transition Engine class is responsible for animating objects in the game. It can be accessed through the `engine.transition` property. The following functions are available in the Transition Engine class. It is similar to the Solar2D transition engine. Time is in milliseconds. The following functions are available in the Transition Engine class.
 
- - *engine.transition.to(object, params = {})* This function animates an object to the specified properties. Returns a transition object
- - *engine.transition.from(object, params = {})* This function animates an object from the specified properties. Returns a transition object
- - *engine.transition.cancel(object)* Will cancel all transitions on the object or the transition object passed as a parameter
+ - **engine.transition.to(object, params = {})** This function animates an object to the specified properties. Returns a transition object
+ - **engine.transition.from(object, params = {})** This function animates an object from the specified properties. Returns a transition object
+ - **engine.transition.cancel(object)** Will cancel all transitions on the object or the transition object passed as a parameter
 
 Transition parameters are passed as an object to the `to` and `from` functions. You can include any numerical property of the object in the parameters object. The following reserved properties for the transition are available:
 
- - *params.delay = 0* The delay in milliseconds before the transition starts
- - *params.time = 300* The time in milliseconds for the transition
- - *params.easing* The easing function to use for the transition
- - *params.onStart* The function to call when the transition starts, after the delay
- - *params.onComplete* The function to call when the transition is complete
+ - **params.delay = 0** The delay in milliseconds before the transition starts
+ - **params.time = 300** The time in milliseconds for the transition
+ - **params.easing** The easing function to use for the transition
+ - **params.onStart** The function to call when the transition starts, after the delay
+ - **params.onComplete** The function to call when the transition is complete
 
  #### Easing Functions
 
  Available easing functions are:
 
- - *Easing.linear*
- - *Easing.inQuad*
- - *Easing.outQuad*
- - *Easing.inOutQuad*
- - *Easing.outBack*
- - *Easing.inBack*
- - *Easing.inOutBack*
- - *Easing.inSine*
- - *Easing.outSine*
- - *Easing.inOutSine*
+ - **Easing.linear**
+ - **Easing.inQuad**
+ - **Easing.outQuad**
+ - **Easing.inOutQuad**
+ - **Easing.outBack**
+ - **Easing.inBack**
+ - **Easing.inOutBack**
+ - **Easing.inSine**
+ - **Easing.outSine**
+ - **Easing.inOutSine**
 
  You can also create your own easing functions. The following is the linear easing function:
 
@@ -473,20 +472,20 @@ The Particle Engine class is responsible for creating and managing particle syst
 
 The Particle engine has the following functions available:
 
- - *engine.particles.newEmitter(emitterParams)* Creates and returns a new emitter object
+ - **engine.particles.newEmitter(emitterParams)** Creates and returns a new emitter object
 
 #### Emitter Parameters
 
 Emitter parameters are usually loaded from a JSON file exported from Particle Designer. You can specify the following additional parameters in the emitterParams object:
 
- - *emitterParams.x = 0*
- - *emitterParams.y = 0*
+ - **emitterParams.x = 0**
+ - **emitterParams.y = 0**
 
 #### Emitter functions
 
- - *start()* Starts the emitter
- - *stop()* Stops the emitter. Particles will continue to exist and move until they expire
- - *pause()* Pauses the emitter and all particles
+ - **start()** Starts the emitter
+ - **stop()** Stops the emitter. Particles will continue to exist and move until they expire
+ - **pause()** Pauses the emitter and all particles
  
  ### Physics Engine
 
@@ -496,28 +495,29 @@ Bodies are created using the `engine.physics.addBody` function. The `object` par
 
 The physics engine has the following functions available:
 
- - *addBody(object, bodyType, options)* Adds a physics body to an object
-   - bodyType = 'dynamic', 'static'
- - *setGravity(x, y)* Sets the gravity of the physics engine
- - *start()* Starts the physics engine
- - *pause()* Pauses the physics engine
- - *stop()* Stops the physics engine
+ - **addBody(object, bodyType, options)** Adds a physics body to an object
+	- bodyType = 'dynamic', 'static'
+ - **removeBody(object)** Removes a physics body from an object
+ - **setGravity(x, y)** Sets the gravity of the physics engine
+ - **start()** Starts the physics engine
+ - **pause()** Pauses the physics engine
+ - **stop()** Stops the physics engine
 
  #### addBody options
 
  The following options are available when creating a body:
 
- - *options.density = 1* The density of the object
- - *options.bounce = 0.1* The bounce of the object
- - *options.friction = 0.1* The friction of the object
- - *options.filter = {}* The collision filter properties. See Matter.js documentation for more information
-   - *filter.category* The category of the object
-   - *filter.mask* The mask of the object
-   - *filter.group* The group of the object
- - *options.radius = false* The radius of the object
- - *options.shape* A list of vertices to use as the shape of the object
- - *options.resolution = 10* The number of sides to use when creating a circle
- - *options.isSensor = false* If the object is a sensor
+ - **options.density = 1** The density of the object
+ - **options.bounce = 0.1** The bounce of the object
+ - **options.friction = 0.1** The friction of the object
+ - **options.filter = {}** The collision filter properties. See Matter.js documentation for more information
+	- **filter.category** The category of the object
+	- **filter.mask** The mask of the object
+	- **filter.group** The group of the object
+ - **options.radius = false** The radius of the object
+ - **options.shape** A list of vertices to use as the shape of the object
+ - **options.resolution = 10** The number of sides to use when creating a circle
+ - **options.isSensor = false** If the object is a sensor
 
 If the `shape` property is set, the `radius` property is ignored. The `shape` property can be a list of vertices. The `filter` property is an object that contains the collision filter properties. These properties are passed to Matter.js when creating the object.body. 
 
@@ -525,35 +525,35 @@ If the `shape` property is set, the `radius` property is ignored. The `shape` pr
 
 After `addBody` is called, the object will have a `body` property that contains the physics object.body. The following properties are available in the body object:
 
- - *object.body.fixedRotation = false* If a body has fixed rotation, if true the body will not rotate
- - *object.body.x* The x position of the body
- - *object.body.y* The y position of the body
- - *object.body.rotation* The rotation of the body in radians
- - *object.body.isSensor = false* If the body is a sensor
- - *object.body.matterBody* The Matter.js body object
+ - **object.body.fixedRotation = false** If a body has fixed rotation, if true the body will not rotate
+ - **object.body.x** The x position of the body
+ - **object.body.y** The y position of the body
+ - **object.body.rotation** The rotation of the body in radians
+ - **object.body.isSensor = false** If the body is a sensor
+ - **object.body.matterBody** The Matter.js body object
 
 And the following functions are available in the body object:
 
- - *object.body.applyForce(x, y)* Applies a force to the body at the center
- - *object.body.setLinearVelocity(x, y)* Sets the linear velocity of the body
- - *object.body.applyTorque(torque)* Applies a torque to the body
- - *object.body.getAngularVelocity()* Returns the angular velocity of the body
- - *object.body.setAngularVelocity(angularVelocity)* Sets the angular velocity of the body
- - *object.body.setMass(mass)* Sets the mass of the body
- - *object.body.getMass()* Returns the mass of the body
+ - **object.body.applyForce(x, y)** Applies a force to the body at the center
+ - **object.body.setLinearVelocity(x, y)** Sets the linear velocity of the body
+ - **object.body.applyTorque(torque)** Applies a torque to the body
+ - **object.body.getAngularVelocity()** Returns the angular velocity of the body
+ - **object.body.setAngularVelocity(angularVelocity)** Sets the angular velocity of the body
+ - **object.body.setMass(mass)** Sets the mass of the body
+ - **object.body.getMass()** Returns the mass of the body
 
 You can still do anything you want with the Matter.js body object. The `matterBody` property contains the Matter.js body object. Most of these functions and properties are just wrappers for the Matter.js body object. If you are familiar with Solar2D, the main difference is that body properties are accessed through the `object.body` property instead of the `object` property.
 
-Avalilable body and engine listeners are:
+Available body and engine listeners are:
 
- - *collision*
+ - **collision**
 
  The collision listener is called when two bodies collide. The event will have the following properties:
 
- - *event.phase = 'began', 'end'*
- - *event.target*
- - *event.other*
- - *event.collision*
+ - **event.phase = 'began', 'end'**
+ - **event.target**
+ - **event.other**
+ - **event.collision**
 
 The `collision` property is an object that contains the collision properties and is the original object emitted by Matter.js. The `target` property is the object that the listener is attached to, and the `other` property is the object that the target is colliding with. You can either set the listener on the engine object to listen to all collisions or set the listener on a specific object to listen to collisions with that object.
 
@@ -561,13 +561,13 @@ The `collision` property is an object that contains the collision properties and
 
 The Strings Engine class is responsible for localizing strings in the game. It can be accessed through the `engine.strings` property. The following functions are available in the Strings Engine class.
 
- - *engine.strings.setLocale(locale)* Sets the locale of the strings engine
- - *engine.strings.get(key, replace)* Returns a localized string, replacing any placeholders with the replace list
- - *engine.strings.add(strings)* Adds a list of strings to the strings engine
+ - **engine.strings.setLocale(locale)** Sets the locale of the strings engine
+ - **engine.strings.get(key, replace)** Returns a localized string, replacing any placeholders with the replace list
+ - **engine.strings.add(strings)** Adds a list of strings to the strings engine
 
 The Strings engine supports the following events:
 
- - *locale* This event is called when the locale is changed
+ - **locale** This event is called when the locale is changed
 
  #### Strings Example
 
@@ -592,14 +592,14 @@ The audio function `engine.playAudio(id, volume = 1, time = 0, loop = false, onC
 
 This function will return an audio object that can be used to control the audio file. The audio object has the following properties, which can even be modified using the `transitions` engine:
 
- - *audioObject.volume* The volume of the audio file 
- - *audioObject.pitch* The pitch of the audio file
+ - **audioObject.volume** The volume of the audio file 
+ - **audioObject.pitch** The pitch of the audio file
 
 And the following functions:
 
- - *audioObject.pause()* Pauses the audio file
- - *audioObject.resume()* Resumes the audio file
- - *audioObject.stop()* Stops the audio file
+ - **audioObject.pause()** Pauses the audio file
+ - **audioObject.resume()** Resumes the audio file
+ - **audioObject.stop()** Stops the audio file
 
  ### Notes
 

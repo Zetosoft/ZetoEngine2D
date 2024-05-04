@@ -3270,6 +3270,11 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 		this.bodies.push(object.body);
 	}
 
+	removeBody(object) {
+		object.removeEventListener('finalize', object.body.finalize);
+		mComposite.remove(this.matterWorld, object.body.matterBody);
+	}
+
 	setGravity(x, y) {
 		this.matterEngine.gravity.x = x;
 		this.matterEngine.gravity.y = y;
