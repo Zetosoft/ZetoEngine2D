@@ -32,24 +32,17 @@ const end = 'end';
 const start = 'start';
 const hover = 'hover';
 ///////////////////////////////////////////// Helpers
-const isGroup = (object) => {
-	return object instanceof ZetoGroup;
+const isGroup = (o) => {
+	return o instanceof ZetoGroup;
 };
-const isTransition = (object) => {
-	return object instanceof ZetoTransition;
+const isTransition = (o) => {
+	return o instanceof ZetoTransition;
 };
-const mathCos = Math.cos;
-const mathSin = Math.sin;
-const pi = Math.PI;
-const hPi = pi * 0.5;
-const mathRound = Math.round;
-const mathFloor = Math.floor;
-const mathRandom = Math.random;
-const mathMax = Math.max;
-const mathSqrt = Math.sqrt;
-const mathAbs = Math.abs;
-const randomSideFloat = () => {
-	return mathRandom() * 2 - 1;
+const isFunction = (f) => {
+	return typeof f == 'function';
+};
+const isArray = (o) => {
+	return a instanceof Array;
 };
 const isNumber = (value) => {
 	return typeof value === 'number';
@@ -60,6 +53,20 @@ const isString = (value) => {
 const isObject = (value) => {
 	return typeof value === 'object';
 };
+const randomSideFloat = () => {
+	return mathRandom() * 2 - 1;
+};
+///////////////////////////////////////////// Math functions
+const mathCos = Math.cos;
+const mathSin = Math.sin;
+const pi = Math.PI;
+const hPi = pi * 0.5;
+const mathRound = Math.round;
+const mathFloor = Math.floor;
+const mathRandom = Math.random;
+const mathMax = Math.max;
+const mathSqrt = Math.sqrt;
+const mathAbs = Math.abs;
 ///////////////////////////////////////////// Matter.js
 const Matter = window.Matter;
 const mBody = Matter?.Body ?? undefined;
@@ -3010,6 +3017,20 @@ class ZetoTransitionEngine extends ZetoEventObject {
 		this.engine = engine;
 	}
 
+	#callListener(listener, target) {
+		if (listener != null) {
+			if (isFunction(listener)) {
+				listener(target);
+			} else if (isArray(listener)) {
+				for (var listenerIndex = 0; listenerIndex < listener.length; listenerIndex++) {
+					if (isFunction(listener[listenerIndex])) {
+						listener[listenerIndex](target);
+					}
+				}
+			}
+		}
+	}
+
 	update(event) {
 		for (var transitionIndex = this.transitions.length - 1; transitionIndex >= 0; transitionIndex--) {
 			var transition = this.transitions[transitionIndex];
@@ -3028,9 +3049,7 @@ class ZetoTransitionEngine extends ZetoEventObject {
 				}
 			} else if (transition.time > 0 && transition.currentTime < transition.time) {
 				if (transition.currentTime <= 0) {
-					if (transition.onStart != null) {
-						transition.onStart(transition.target);
-					}
+					this.#callListener(transition.onStart, transition.target);
 				}
 
 				transition.currentTime += event.delta;
@@ -3051,17 +3070,7 @@ class ZetoTransitionEngine extends ZetoEventObject {
 				for (var key in transition.targetValues) {
 					transition.target[key] = transition.targetValues[key];
 				}
-
-				if (transition.onComplete != null) {
-					if (typeof transition.onComplete == 'function') {
-						transition.onComplete(transition.target);
-					} else if (transition.onComplete instanceof Array) {
-						for (var onCompleteIndex = 0; onCompleteIndex < transition.onComplete.length; onCompleteIndex++) {
-							transition.onComplete[onCompleteIndex](transition.target);
-						}
-					}
-				}
-
+				this.#callListener(transition.onComplete, transition.target);
 				transition.remove = true;
 			}
 		}
