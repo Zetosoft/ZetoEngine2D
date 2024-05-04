@@ -2094,11 +2094,11 @@ class ZetoEngine extends ZetoEventObject {
 
 	getAsset(type, id) {
 		if (type == 'image') {
-			return this.loadedImages[id];
+			return this.loadedImages[id] ? this.loadedImages[id].image : false;
 		} else if (type == 'audio') {
-			return this.loadedAudio[id];
+			return this.loadedAudio[id] ? this.loadedAudio[id].audio : false;
 		} else if (type == 'data') {
-			return this.loadedData[id];
+			return this.loadedData[id] ? this.loadedData[id].data : false;
 		}
 	}
 
@@ -2115,8 +2115,8 @@ class ZetoEngine extends ZetoEventObject {
 
 			if (this.loadedIds[type][asset.id]) {
 				let existingAsset = this.getAsset(type, asset.id);
-				if (existingAsset.filename != asset.filename) {
-					console.warn('Duplicate ' + type + '.' + asset.id + ' with different filename');
+				if (existingAsset != asset) {
+					console.warn('Duplicate ' + type + '.' + asset.id + ' with different contents');
 				}
 			}
 
@@ -3053,7 +3053,13 @@ class ZetoTransitionEngine extends ZetoEventObject {
 				}
 
 				if (transition.onComplete != null) {
-					transition.onComplete(transition.target);
+					if (typeof transition.onComplete == 'function') {
+						transition.onComplete(transition.target);
+					} else if (transition.onComplete instanceof Array) {
+						for (var onCompleteIndex = 0; onCompleteIndex < transition.onComplete.length; onCompleteIndex++) {
+							transition.onComplete[onCompleteIndex](transition.target);
+						}
+					}
 				}
 
 				transition.remove = true;
