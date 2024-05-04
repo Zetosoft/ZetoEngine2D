@@ -1267,6 +1267,7 @@ class ZetoEngine extends ZetoEventObject {
 
 	rootGroup;
 
+	loadedModules = {};
 	loadedImages = {};
 	loadedAudio = {};
 	loadedData = {};
@@ -2091,18 +2092,21 @@ class ZetoEngine extends ZetoEventObject {
 		}
 	}
 
+	getAsset(type, id) {
+		if (type == 'image') {
+			return this.loadedImages[id];
+		} else if (type == 'audio') {
+			return this.loadedAudio[id];
+		} else if (type == 'data') {
+			return this.loadedData[id];
+		}
+	}
+
 	loadAssets(images, audio, data, onComplete, onProgress) {
 		var numAssets = 0;
 		numAssets += images ? images.length : 0;
 		numAssets += audio ? audio.length : 0;
 		numAssets += data ? data.length : 0;
-
-		var loadedFromCache = {
-			image: {},
-			audio: {},
-			data: {},
-			unknown: {},
-		};
 
 		var numLoaded = 0;
 		function assetLoaded(event) {
@@ -2110,40 +2114,31 @@ class ZetoEngine extends ZetoEventObject {
 			var type = asset.zType ?? 'unknown';
 
 			if (this.loadedIds[type][asset.id]) {
-				if (event.type != 'cache-z') {
-					if (loadedFromCache[type][asset.id] && loadedFromCache[type][asset.id].filename != asset.filename) {
-						console.error('Loading fail - Duplicate ID and different filename' + type + ' ' + asset.id);
-					}
-				} else {
-					this.loadedIds[type][asset.id] = false;
+				let existingAsset = this.getAsset(type, asset.id);
+				if (existingAsset.filename != asset.filename) {
+					console.warn('Duplicate ' + type + '.' + asset.id + ' with different filename');
 				}
 			}
 
-			if (!this.loadedIds[type][asset.id]) {
-				this.loadedIds[type][asset.id] = event.type ?? true;
-				numLoaded++;
+			this.loadedIds[type][asset.id] = event.type ?? true;
+			numLoaded++;
 
-				if (event.type == 'cache-z') {
-					loadedFromCache[type][asset.id] = asset;
-				}
+			if (onProgress) {
+				var onProgressEvent = {
+					numLoaded: numLoaded,
+					numAssets: numAssets,
+					loadedId: asset.id,
+					progress: numLoaded / numAssets,
+					asset: asset,
+				};
+				onProgress(onProgressEvent);
+			}
 
-				if (onProgress) {
-					var onProgressEvent = {
-						numLoaded: numLoaded,
-						numAssets: numAssets,
-						loadedId: asset.id,
-						progress: numLoaded / numAssets,
-						asset: asset,
-					};
-					onProgress(onProgressEvent);
-				}
-
-				if (numLoaded == numAssets) {
-					var onCompleteEvent = {
-						numLoaded: numLoaded,
-					};
-					onComplete(onCompleteEvent);
-				}
+			if (numLoaded == numAssets) {
+				var onCompleteEvent = {
+					numLoaded: numLoaded,
+				};
+				onComplete(onCompleteEvent);
 			}
 		}
 
@@ -2232,8 +2227,9 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	async load(moduleName, params, loadedListener, progressListener) {
-		moduleName = moduleName.replace(/\./g, '/');
-		const module = await import(`./${moduleName}.js`);
+		var jsName = moduleName.replace(/\./g, '/');
+		const module = this.loadedModules[moduleName] ?? (await import(`./${jsName}.js?c=${Date.now()}`));
+		this.loadedModules[moduleName] = module;
 		var createEvent = {
 			params: params,
 			engine: this,
@@ -2245,8 +2241,9 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	async unload(moduleName, params, unloadedListener) {
-		moduleName = moduleName.replace(/\./g, '/');
-		const module = await import(`./${moduleName}.js`);
+		var jsName = moduleName.replace(/\./g, '/');
+		const module = this.loadedModules[moduleName] ?? (await import(`./${jsName}.js`));
+		this.loadedModules[moduleName] = module;
 		var destroyEvent = {
 			params: params,
 			engine: this,
