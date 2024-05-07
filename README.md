@@ -212,10 +212,9 @@ Other functions available in the Engine class are:
 	- **fill.yScale** The y scale of the fill
 	- **fill.rotation** The rotation of the fill
  - **engine.getData(id)** Returns a data object, loaded previously with the `loadAssets` function, used to load JSON data, and can be used to create particle emitters
- - **engine.async playAudio(id, volume = 1, time = 0, loop = false, onComplete = false)** Plays an audio file, returns an audio object, further documentation below
  - **engine.loadAssets(images, audio, data, onComplete, onProgress)** Loads assets, calls onComplete when all assets are loaded, and onProgress while assets are loading, use along with the `create` `event.complete` and `event.progress` functions
- - **engine.async load(moduleName, params, loadedListener, progressListener)** Loads a module, calls loadedListener when the module is loaded, and progressListener for each asset loaded. `moduleName` must be in dot format, for example `game.main` like in Lua.
- - **engine.async unload(moduleName, params, unloadedListener)** Unloads a module, calls unloadedListener when `event.complete` is called inside the `destroy` function on the module being unloaded
+ - **async engine.load(moduleName, params, loadedListener, progressListener)** Loads a module, calls loadedListener when the module is loaded, and progressListener for each asset loaded. `moduleName` must be in dot format, for example `game.main` like in Lua.
+ - **async engine.unload(moduleName, params, unloadedListener)** Unloads a module, calls unloadedListener when `event.complete` is called inside the `destroy` function on the module being unloaded
  - **engine.pause()** Pauses the engine. This will pause all transitions, timers, physics, and particles. `enterframe` and `exitframe` events will still be called, with a `delta` property of 0 and a `timestamp` property of the last frame. `frame` property will still be incremented
  - **engine.resume()** Resumes the engine
  - **engine.step()** Steps the engine one frame
@@ -657,7 +656,12 @@ console.log(helloString); // Hello, Zeto!
 
 ### Audio
 
-The audio function `engine.playAudio(id, volume = 1, time = 0, loop = false, onComplete = false)` plays an audio file loaded with the `engine.loadAssets` function. The `id` parameter is the id of the audio file. The `volume` parameter is the volume of the audio file, any value between 0 and 1. The `time` parameter is the time in milliseconds to start the audio file. The `loop` parameter is a boolean that determines if the audio file should loop. The `onComplete` parameter is a function that is called when the audio file is complete.
+ZetoEngine2D has a simple audio engine that can be used to play audio files. The audio engine uses the Web Audio API to play audio files. The following functions are available in the audio engine.
+
+ - **async engine.audio.play(id, volume = 1, time = 0, loop = false, onComplete = false)** Plays an audio file, returns an audio object, further documentation below
+ - **engine.audio.setVolume(volume)** Sets the global volume of the audio engine. Any value between 0 and 1 is accepted. Setting the volume to 0 will mute all playing audio and future audio. The default volume is 1
+
+The audio function `engine.audio.play(id, volume = 1, time = 0, loop = false, onComplete = false)` plays an audio file loaded with the `engine.loadAssets` function. The `id` parameter is the id of the audio file. The `volume` parameter is the volume of the audio file, any value between 0 and 1. The `time` parameter is the time in milliseconds to start the audio file. The `loop` parameter is a boolean that determines if the audio file should loop. The `onComplete` parameter is a function that is called when the audio file is complete.
 
 This function will return an audio object that can be used to control the audio file. The audio object has the following properties, which can even be modified using the `transitions` engine:
 
@@ -669,6 +673,10 @@ And the following functions:
  - **audioObject.pause()** Pauses the audio file
  - **audioObject.resume()** Resumes the audio file
  - **audioObject.stop()** Stops the audio file
+
+Stopping the audio file will call the `onComplete` function if it is set.
+
+The audio engine will try to initialize the audio context on the first interaction with the canvas. Playing audio without user interaction is disabled on all browsers
 
  ### Notes
 

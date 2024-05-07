@@ -1351,6 +1351,7 @@ class ZetoEngine extends ZetoEventObject {
 		this.timer = new ZetoTimerEngine(this);
 		this.widgets = new ZetoWidgets(this);
 		this.strings = new ZetoStrings(this);
+		this.audio = new ZetoAudioEngine(this);
 
 		document.addEventListener('touchstart', {}); // Enables touch events on iOS if embedded in iframe
 
@@ -1370,7 +1371,6 @@ class ZetoEngine extends ZetoEventObject {
 		window.addEventListener('keydown', this.keyDown.bind(this));
 		window.addEventListener('keyup', this.keyUp.bind(this));
 
-		this.initAudioListeners();
 		this.initCanvas(smoothing, canvas);
 
 		window.onunload = function (event) {
@@ -1566,27 +1566,7 @@ class ZetoEngine extends ZetoEventObject {
 		this.holdingKey[event.code ?? event.key] = false;
 	}
 
-	initAudio() {
-		try {
-			if (!this.audioContext) {
-				window.AudioContext = window.AudioContext || window.webkitAudioContext;
-				this.audioContext = new AudioContext();
-
-				this.removeEventListener('tap', this.initAudioBind);
-				this.removeEventListener('touch', this.initAudioBind);
-				this.removeEventListener('key', this.initAudioBind);
-			}
-		} catch (e) {
-			console.error('Could not init audio context');
-		}
-	}
-
-	initAudioListeners() {
-		this.initAudioBind = this.initAudio.bind(this);
-		this.addEventListener('tap', this.initAudioBind);
-		this.addEventListener('touch', this.initAudioBind);
-		this.addEventListener('key', this.initAudioBind);
-	}
+	
 
 	initCanvas(smoothing = false, canvasId = 'canvas') {
 		this.canvas = document.getElementById(canvasId);
@@ -2036,29 +2016,6 @@ class ZetoEngine extends ZetoEventObject {
 		}
 	}
 
-	async playAudio(id, volume = 1, time = 0, loop = false, onComplete = false) {
-		var element = this.loadedAudio[id];
-		if (element && this.audioContext) {
-			var audio = element.audio; // XMLHttpRequest
-			if (audio.decoding) {
-				return;
-			}
-
-			if (!audio.zBuffer) {
-				audio.decoding = true;
-				try {
-					audio.zBuffer = await this.audioContext.decodeAudioData(audio.response);
-				} catch (e) {
-					// Might not be ready yet (Not interacted with page)
-					return;
-				}
-				audio.decoding = false;
-			}
-
-			return new ZetoEngineAudio(this, audio.zBuffer, volume, time, loop, onComplete);
-		}
-	}
-
 	getAsset(type, id) {
 		if (type == 'image') {
 			return this.loadedImages[id] ? this.loadedImages[id].image : false;
@@ -2282,34 +2239,124 @@ class ZetoEngine extends ZetoEventObject {
 		}
 	}
 }
+//////////////////////////////////////// Audio Engine
+class ZetoAudioEngine {
+	engine;
+	volume = 1;
+	initAudioBind;
+	audioContext;
 
-class ZetoEngineAudio {
+	audios = [];
+
+	constructor(engine) {
+		this.engine = engine;
+		this.initAudioListeners();
+	}
+
+	initAudio() {
+		try {
+			if (!this.audioContext) {
+				window.AudioContext = window.AudioContext || window.webkitAudioContext;
+				this.audioContext = new AudioContext();
+
+				this.engine.removeEventListener('tap', this.initAudioBind);
+				this.engine.removeEventListener('touch', this.initAudioBind);
+				this.engine.removeEventListener('key', this.initAudioBind);
+			}
+		} catch (e) {
+			console.error('Could not init audio context');
+		}
+	}
+
+	initAudioListeners() {
+		this.initAudioBind = this.initAudio.bind(this);
+		this.engine.addEventListener('tap', this.initAudioBind);
+		this.engine.addEventListener('touch', this.initAudioBind);
+		this.engine.addEventListener('key', this.initAudioBind);
+	}
+
+	async play(id, volume = 1, time = 0, loop = false, onComplete = false) {
+		var element = this.engine.loadedAudio[id];
+		if (element && this.audioContext) {
+			var audio = element.audio; // XMLHttpRequest
+			if (audio.decoding) {
+				return;
+			}
+
+			if (!audio.zBuffer) {
+				audio.decoding = true;
+				try {
+					audio.zBuffer = await this.audioContext.decodeAudioData(audio.response);
+				} catch (e) {
+					// Might not be ready yet (Not interacted with page)
+					return;
+				}
+				audio.decoding = false;
+			}
+
+			volume = volume * this.volume;
+			var audioObject = new ZetoAudioObject(this, audio.zBuffer, volume, time, loop);
+			audioObject.addEventListener('complete', onComplete);
+			audioObject.addEventListener('complete', this.#removeAudio);
+			this.audios.push(audioObject);
+			return audioObject;
+		}
+	}
+
+	#removeAudio(event) {
+		var audioObject = event.target;
+		var audioIndex = this.audios.indexOf(audioObject);
+		if (audioIndex > -1) {
+			this.audios.splice(audioIndex, 1);
+		}
+	}
+
+	setVolume(volume) {
+		this.volume = volume;
+		for (var audioIndex = 0; audioIndex < this.audios.length; audioIndex++) {
+			this.audios[audioIndex].syncVolume();
+		}
+	}
+}
+
+class ZetoAudioObject extends ZetoEventObject {
 	bufferSource;
 	gainNode;
-	onComplete;
+	audioEngine;
 
-	constructor(engine, buffer, volume, time, loop, onComplete) {
-		const bufferSource = engine.audioContext.createBufferSource();
+	internal = {
+		volume: 1,
+		pitch: 1,
+	};
+
+	listeners = [
+		'complete',
+	];
+
+	constructor(audioEngine, buffer, volume, time, loop) {
+		super();
+
+		this.audioEngine = audioEngine;
+		this.internal.volume = volume;
+
+		const bufferSource = audioEngine.audioContext.createBufferSource();
 		bufferSource.loop = loop;
 		bufferSource.buffer = buffer;
 
-		const gainNode = engine.audioContext.createGain();
-		gainNode.gain.value = volume;
+		const gainNode = audioEngine.audioContext.createGain();
+		gainNode.gain.value = volume * audioEngine.volume;
 
-		bufferSource.connect(gainNode).connect(engine.audioContext.destination);
+		bufferSource.connect(gainNode).connect(audioEngine.audioContext.destination);
 		bufferSource.onended = this.onended.bind(this);
 		bufferSource.start(time);
 
 		this.bufferSource = bufferSource;
 		this.gainNode = gainNode;
-		this.onComplete = onComplete;
 	}
 
 	onended(event) {
 		this.bufferSource.stop(0);
-		if (this.onComplete) {
-			this.onComplete({ target: this });
-		}
+		this.dispatchEvent('complete', { target: this });
 	}
 
 	pause() {
@@ -2324,20 +2371,26 @@ class ZetoEngineAudio {
 		this.bufferSource.stop(0);
 	}
 
+	syncVolume() {
+		this.gainNode.gain.value = this.internal.volume * this.audioEngine.volume;
+	}
+
 	set volume(volume) {
-		this.gainNode.gain.value = volume;
+		this.internal.volume = volume;
+		this.syncVolume();
 	}
 
 	set pitch(pitch) {
+		this.internal.pitch = pitch;
 		this.bufferSource.playbackRate.value = pitch;
 	}
 
 	get volume() {
-		return this.gainNode.gain.value;
+		return this.internal.volume;
 	}
 
 	get pitch() {
-		return this.bufferSource.playbackRate.value;
+		return this.internal.pitch;
 	}
 }
 
