@@ -1318,11 +1318,10 @@ class ZetoEngine extends ZetoEventObject {
 
 	physics;
 	particles;
+	timer;
 	transition;
 	widgets;
 	strings;
-
-	timers = [];
 
 	info = {
 		isMobile: (navigator.maxTouchPoints & 0xff) > 1 || 'ontouchstart' in document ? true : false,
@@ -1349,6 +1348,7 @@ class ZetoEngine extends ZetoEventObject {
 		this.physics = new ZetoPhysicsEngine(this);
 		this.particles = new ZetoParticleEngine(this);
 		this.transition = new ZetoTransitionEngine(this);
+		this.timer = new ZetoTimerEngine(this);
 		this.widgets = new ZetoWidgets(this);
 		this.strings = new ZetoStrings(this);
 
@@ -1620,25 +1620,28 @@ class ZetoEngine extends ZetoEventObject {
 			this.frameEvent.timeStamp = timeStamp; // This prevents a huge delta time when re-focusing
 		}
 
-		if (this.paused) {
-			return window.requestAnimationFrame(this.mainLoop.bind(this));
-		}
-
 		this.frameEvent.frame++;
-		this.frameEvent.delta = timeStamp - this.frameEvent.timeStamp;
-		this.frameEvent.timeStamp = timeStamp;
+		if (this.paused) {
+			this.frameEvent.delta = 0;
+			this.frameEvent.timeStamp = timeStamp;
+		} else {
+			this.frameEvent.delta = timeStamp - this.frameEvent.timeStamp;
+			this.frameEvent.timeStamp = timeStamp;
+		}
 
 		this.dispatchEvent('enterframe', this.frameEvent);
 
 		this.clearCanvas();
 		this.updateInput();
 		this.drawUpdate(this.rootGroup); // Scene graph update
-		this.updateTimers();
 		this.updateTouchPoints();
 
-		this.transition.update(this.frameEvent);
-		this.physics.update(this.frameEvent);
-		this.particles.update(this.frameEvent);
+		if (!this.paused) {
+			this.timer.update(this.frameEvent);
+			this.transition.update(this.frameEvent);
+			this.physics.update(this.frameEvent);
+			this.particles.update(this.frameEvent);
+		}
 
 		this.dispatchEvent('exitframe', this.frameEvent);
 
@@ -1676,25 +1679,6 @@ class ZetoEngine extends ZetoEventObject {
 			}
 			delete this.touchPoints[touchId];
 			this.removeTouchPoints.splice(touchIndex, 1);
-		}
-	}
-
-	updateTimers() {
-		for (var timerIndex = this.timers.length - 1; timerIndex >= 0; timerIndex--) {
-			var timer = this.timers[timerIndex];
-			if (timer.remove) {
-				this.timers.splice(timerIndex, 1);
-				continue;
-			} else if (timer.executeTime <= this.frameEvent.timeStamp) {
-				if (timer.iterations != 0) {
-					// less than 0 is infinite iterations
-					timer.listener({ target: timer });
-					timer.executeTime = this.frameEvent.timeStamp + timer.delay;
-					timer.iterations--;
-				} else if (timer.iterations == 0) {
-					this.timers.splice(timerIndex, 1);
-				}
-			}
 		}
 	}
 
@@ -1905,30 +1889,6 @@ class ZetoEngine extends ZetoEventObject {
 			cY: this.cY,
 		};
 		this.dispatchEvent('resize', resizeEvent);
-	}
-
-	performWithDelay(delay, listener, iterations = 1) {
-		if (!listener || typeof listener != 'function') {
-			throw new Error('Invalid listener');
-		}
-
-		var timer = {
-			delay: delay,
-			listener: listener,
-			iterations: iterations,
-			timeStamp: this.frameEvent.timeStamp,
-			executeTime: this.frameEvent.timeStamp + delay,
-			remove: false,
-		};
-		this.timers.push(timer);
-		return timer;
-	}
-
-	cancelTimer(timer) {
-		// TODO: check if is timer?
-		if (timer) {
-			timer.remove = true;
-		}
 	}
 
 	newGroup(x, y) {
@@ -2942,6 +2902,60 @@ class ZetoEmitter extends ZetoGroup {
 
 	pause() {
 		this.state = 'paused';
+	}
+}
+///////////////////////////////////////////// Timer
+class ZetoTimerEngine {
+	engine;
+	timers = [];
+
+	constructor(engine) {
+		this.engine = engine;
+	}
+
+	update(event) {
+		for (var timerIndex = this.timers.length - 1; timerIndex >= 0; timerIndex--) {
+			var timer = this.timers[timerIndex];
+			if (timer.remove) {
+				this.timers.splice(timerIndex, 1);
+				continue;
+			} else if (timer.currentDelay > 0) {
+				if (timer.iterations != 0) {
+					timer.currentDelay -= event.delta;
+					if (timer.currentDelay <= 0) {
+						timer.listener({ target: timer });
+						timer.iterations--;
+						timer.currentDelay += timer.delay; // Reset delay plus any overflow
+					}
+				} else if (timer.iterations == 0) {
+					this.timers.splice(timerIndex, 1);
+				}
+			}
+		}
+	}
+
+	performWithDelay(delay, listener, iterations = 1) {
+		if (!listener || typeof listener != 'function') {
+			throw new Error('Invalid listener');
+		}
+
+		var timer = {
+			delay: delay,
+			listener: listener,
+			iterations: iterations,
+			currentDelay: delay,
+			delay: delay,
+			remove: false,
+		};
+		this.timers.push(timer);
+		return timer;
+	}
+
+	cancel(timer) {
+		// TODO: check if is timer?
+		if (timer) {
+			timer.remove = true;
+		}
 	}
 }
 ///////////////////////////////////////////// Transitions

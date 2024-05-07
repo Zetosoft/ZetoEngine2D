@@ -205,8 +205,6 @@ The following functions create Engine Objects.
 
 Other functions available in the Engine class are:
 
- - **engine.performWithDelay(delay, listener, iterations = 1)** Calls a function after a delay in milliseconds, returns a timer object. The listener function will receive the timer object as a `target` property
- - **engine.cancelTimer(timer)** Cancels a timer created with performWithDelay
  - **engine.getImageFill(id, pattern, repeat = 'repeat')** Returns an image fill object, to be used with engine objects that have the `fill` property. The pattern is optional and can be `repeat`, `repeat-x`, `repeat-y`, `no-repeat`. The fill object can be transitioned and has the following properties:
 	- **fill.x** The x position of the fill
 	- **fill.y** The y position of the fill
@@ -218,7 +216,7 @@ Other functions available in the Engine class are:
  - **engine.loadAssets(images, audio, data, onComplete, onProgress)** Loads assets, calls onComplete when all assets are loaded, and onProgress while assets are loading, use along with the `create` `event.complete` and `event.progress` functions
  - **engine.async load(moduleName, params, loadedListener, progressListener)** Loads a module, calls loadedListener when the module is loaded, and progressListener for each asset loaded. `moduleName` must be in dot format, for example `game.main` like in Lua.
  - **engine.async unload(moduleName, params, unloadedListener)** Unloads a module, calls unloadedListener when `event.complete` is called inside the `destroy` function on the module being unloaded
- - **engine.pause()** Pauses the engine
+ - **engine.pause()** Pauses the engine. This will pause all transitions, timers, physics, and particles. `enterframe` and `exitframe` events will still be called, with a `delta` property of 0 and a `timestamp` property of the last frame. `frame` property will still be incremented
  - **engine.resume()** Resumes the engine
  - **engine.step()** Steps the engine one frame
  - **engine.getInfo(property)** Gets information about the engine, available properties are `isMobile`
@@ -456,6 +454,13 @@ And the following functions:
  - **setLabel(label)** Sets the label of the button
 
 Note that if `engine.widgets.setEnabled(false, tag)` is called, even before the button is created, all buttons with the same or default tag will be disabled. You can enable or disable all widgets with this function. This is useful for creating a pause menu or other UI elements that need to be disabled when the game is paused, this way, all buttons on the game will be disabled and the ones on the pause menu can be enabled.
+
+### Timer Engine
+
+The Timer Engine class is responsible for creating and managing timers. It can be accessed through the `engine.timer` property. The following functions are available in the Timer Engine class. The Timer Engine is similar to the Solar2D timer engine.
+
+ - **engine.timer.performWithDelay(delay, listener, iterations = 1)** Calls a function after a delay in milliseconds, returns a timer object. The listener function will receive the timer object as a `target` property
+ - **engine.timer.cancel(timer)** Cancels a timer created with performWithDelay
 
 ### Transition Engine
 
