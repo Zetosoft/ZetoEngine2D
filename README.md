@@ -604,6 +604,7 @@ And the following functions are available in the body object:
 
  - **object.body.applyForce(x, y)** Applies a force to the body at the center
  - **object.body.setLinearVelocity(x, y)** Sets the linear velocity of the body
+ - **object.body.getLinearVelocity()** Gets the linear velocity of the body
  - **object.body.applyTorque(torque)** Applies a torque to the body
  - **object.body.getAngularVelocity()** Returns the angular velocity of the body
  - **object.body.setAngularVelocity(angularVelocity)** Sets the angular velocity of the body

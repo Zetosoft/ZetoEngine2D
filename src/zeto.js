@@ -3528,6 +3528,10 @@ class ZetoPhysicsBody extends ZetoEventObject {
 		mBody.setVelocity(this.matterBody, { x: x, y: y });
 	}
 
+	getLinearVelocity() {
+		return this.matterBody.velocity;
+	}
+
 	applyTorque(torque) {
 		this.matterBody.torque = torque;
 	}
