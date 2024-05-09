@@ -317,11 +317,6 @@ class ZetoEngineObject extends ZetoEventObject {
 	set fill(value) {
 		this.internal.fill = value;
 		if (value && value.pattern) {
-			var transformMatrix = new DOMMatrix();
-			transformMatrix.translateSelf(value.x ?? 0, value.y ?? 0);
-			transformMatrix.rotateSelf((value.rotation ?? 0) * degreeMultiplier);
-			transformMatrix.scaleSelf(value.xScale ?? 1, value.yScale ?? 1);
-			value.pattern.setTransform(transformMatrix);
 			this.createFillSheet({ width: this.path.width, height: this.path.height });
 		} else if (value && value.image && !value.sheet) {
 			this.createFillSheet(value.image);
@@ -1660,8 +1655,7 @@ class ZetoEngine extends ZetoEventObject {
 
 		for (var touchIndex = 0; touchIndex < this.activeTouchPoints.length; touchIndex++) {
 			var touchPoint = this.touchPoints[this.activeTouchPoints[touchIndex]];
-			if (touchPoint.started != TOUCH_STARTED_ENGINE) {
-				// Can be TOUCH_STARTED_FALSE or TOUCH_STARTED_TRUE
+			if (touchPoint.started != TOUCH_STARTED_ENGINE) { // Can be TOUCH_STARTED_FALSE or TOUCH_STARTED_TRUE
 				touchPoint.started = TOUCH_STARTED_ENGINE;
 
 				var touchEvent = {
@@ -2012,17 +2006,12 @@ class ZetoEngine extends ZetoEventObject {
 		return this.rootGroup.insert(sprite, true);
 	}
 
-	getImageFill(id, pattern, repeat = 'repeat') {
+	getImageFill(id, createPattern, patternRepeat = 'repeat') {
 		var fill = this.loadedImages[id];
-		if (fill && pattern) {
-			return {
-				pattern: this.context.createPattern(fill.image, repeat),
-				x: fill.image.width * 0.5,
-				y: fill.image.height * 0.5,
-				xScale: 1,
-				yScale: 1,
-				rotation: 0,
-			};
+		if (fill && createPattern) {
+			var pattern = this.context.createPattern(fill.image, patternRepeat);
+			return new ZetoFill(pattern, fill.image.width, fill.image.height);
+			
 		} else {
 			return fill;
 		}
@@ -2264,6 +2253,84 @@ class ZetoEngine extends ZetoEventObject {
 		}
 	}
 }
+
+class ZetoFill {
+	pattern;
+	matrix;
+
+	internal = {
+		x: 0,
+		y: 0,
+		xScale: 1,
+		yScale: 1,
+		rotation: 0,
+	};
+
+	constructor(pattern, width, height) {
+		this.pattern = pattern;
+		this.matrix = new DOMMatrix();
+		this.pattern.setTransform(this.matrix);
+
+		this.x = width * 0.5;
+		this.y = height * 0.5;
+	}
+
+	set x(value) {
+		var xDiff = value - this.internal.x;
+		this.matrix.translateSelf(xDiff, 0);
+		this.pattern.setTransform(this.matrix);
+		this.internal.x = value;
+	}
+
+	set y(value) {
+		var yDiff = value - this.internal.y;
+		this.matrix.translateSelf(0, yDiff);
+		this.pattern.setTransform(this.matrix);
+		this.internal.y = value;
+	}
+
+	set xScale(value) {
+		var xDiff = value - this.internal.xScale;
+		this.matrix.scaleSelf(xDiff, 1);
+		this.pattern.setTransform(this.matrix);
+		this.internal.xScale = value;
+	}
+
+	set yScale(value) {
+		var yDiff = value - this.internal.yScale;
+		this.matrix.scaleSelf(1, yDiff);
+		this.pattern.setTransform(this.matrix);
+		this.internal.yScale = value;
+	}
+
+	set rotation(value) {
+		var rotationDiff = value - this.internal.rotation;
+		this.matrix.rotateSelf(rotationDiff * degreeMultiplier);
+		this.pattern.setTransform(this.matrix);
+		this.internal.rotation = value;
+	}
+
+	get x() {
+		return this.internal.x;
+	}
+
+	get y() {
+		return this.internal.y;
+	}
+
+	get xScale() {
+		return this.internal.xScale;
+	}
+
+	get yScale() {
+		return this.internal.yScale;
+	}
+
+	get rotation() {
+		return this.internal.rotation;
+	}
+
+}
 //////////////////////////////////////// Audio Engine
 class ZetoAudioEngine {
 	engine;
@@ -2354,7 +2421,9 @@ class ZetoAudioObject extends ZetoEventObject {
 		pitch: 1,
 	};
 
-	listeners = ['complete'];
+	listeners = [
+		'complete',
+	];
 
 	constructor(audioEngine, buffer, volume, time, loop) {
 		super();
