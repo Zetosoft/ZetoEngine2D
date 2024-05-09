@@ -1014,8 +1014,8 @@ class ZetoButton extends ZetoWidget {
 			if (this.onTapListener) {
 				this.onTapListener(event);
 			}
+			return true;
 		}
-		return true;
 	}
 
 	onTouch(event) {
@@ -1033,8 +1033,8 @@ class ZetoButton extends ZetoWidget {
 				this.holding = false;
 				this.#setPressedView(false);
 			}
+			return true;
 		}
-		return true;
 	}
 
 	onHover(event) {
