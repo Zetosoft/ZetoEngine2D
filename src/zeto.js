@@ -768,20 +768,17 @@ class ZetoWidgets extends ZetoEventObject {
 		enabled: [],
 	};
 
+	#finalizeBind;
+
 	constructor(engine) {
 		super();
 		this.engine = engine;
+		this.#finalizeBind = this.#finalizeWidget.bind(this);
 	}
 
 	newButton(options) {
 		let button = new ZetoButton(this.engine, options);
-		button.addEventListener('finalize', (event) => {
-			let tag = event.target.tag;
-			let index = this.widgets[tag].indexOf(event.target);
-			if (index > -1) {
-				this.widgets[tag].splice(index, 1);
-			}
-		});
+		button.addEventListener('finalize', this.#finalizeBind);
 
 		let tag = options.tag ?? 'default';
 		this.widgets[tag] = this.widgets[tag] ?? [];
@@ -789,6 +786,14 @@ class ZetoWidgets extends ZetoEventObject {
 		this.enabled[tag] = this.enabled[tag] ?? true;
 		button.setEnabled(this.enabled[tag]);
 		return this.engine.rootGroup.insert(button, true);
+	}
+
+	#finalizeWidget(event) {
+		let tag = event.target.tag;
+		let index = this.widgets[tag].indexOf(event.target);
+		if (index > -1) {
+			this.widgets[tag].splice(index, 1);
+		}
 	}
 
 	setEnabled(enabled, tag = 'default') {
@@ -1424,8 +1429,7 @@ class ZetoEngine extends ZetoEventObject {
 			touchPoint.lastInputY = touch.pageY;
 
 			var touchEvent = { deltaX: deltaX, deltaY: deltaY, touchPoint: touchPoint, phase: moved };
-			this.dispatchEvent('touch', touchEvent); // Engine level
-
+			var handled = false;
 			if (touchPoint.listenerObjects.length > 0) {
 				for (var objectIndex = 0; objectIndex < touchPoint.listenerObjects.length; objectIndex++) {
 					var object = touchPoint.listenerObjects[objectIndex];
@@ -1438,9 +1442,16 @@ class ZetoEngine extends ZetoEventObject {
 							touchPoint: touchPoint,
 							phase: moved,
 						};
-						this.dispatchObjectEvent(object, 'touch', touchEvent);
+
+						if ((handled = this.dispatchObjectEvent(object, 'touch', touchEvent) == true)) {
+							break;
+						}
 					}
 				}
+			}
+
+			if (!handled) {
+				this.dispatchEvent('touch', touchEvent); // Engine level
 			}
 		}
 	}
@@ -1470,7 +1481,6 @@ class ZetoEngine extends ZetoEventObject {
 					y: touchPoint.lastInputY,
 					time: touchDiff,
 				};
-				this.dispatchEvent('tap', tapEvent); // Engine level
 			}
 
 			var touchEvent = {
@@ -1479,20 +1489,33 @@ class ZetoEngine extends ZetoEventObject {
 				touchPoint: touchPoint,
 				phase: ended,
 			};
-			this.dispatchEvent('touch', touchEvent); // Engine level
 
+			var touchHandled = false;
+			var tapHandled = false;
 			if (touchPoint.listenerObjects.length > 0) {
 				// Object level
 				for (var objectIndex = 0; objectIndex < touchPoint.listenerObjects.length; objectIndex++) {
 					var object = touchPoint.listenerObjects[objectIndex];
-					if (tapEvent && object.hasEventListener('tap')) {
-						this.dispatchObjectEvent(object, 'tap', tapEvent);
+					if (tapEvent && object.hasEventListener('tap') && !tapHandled) {
+						tapHandled = this.dispatchObjectEvent(object, 'tap', tapEvent) == true;
 					}
-					if (object.hasEventListener('touch')) {
-						this.dispatchObjectEvent(object, 'touch', touchEvent);
+					if (object.hasEventListener('touch') && !touchHandled) {
+						touchHandled = this.dispatchObjectEvent(object, 'touch', touchEvent) == true;
+					}
+					if (touchHandled && tapHandled) {
+						break;
 					}
 				}
 			}
+
+			if (!touchHandled) {
+				this.dispatchEvent('touch', touchEvent); // Engine level
+			}
+
+			if (tapEvent && !tapHandled) {
+				this.dispatchEvent('tap', tapEvent); // Engine level
+			}
+
 			this.removeTouchPoints.push(touchId);
 			touchPoint.listenerObjects = false;
 		}
@@ -1635,6 +1658,19 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	updateTouchPoints() {
+		for (var touchIndex = this.removeTouchPoints.length - 1; touchIndex >= 0; touchIndex--) {
+			var touchId = this.removeTouchPoints[touchIndex];
+
+			var activeIndex = this.activeTouchPoints.indexOf(touchId);
+			if (activeIndex > -1) {
+				// TODO: check alternatives
+				this.activeTouchPoints.splice(activeIndex, 1);
+			}
+			delete this.touchPoints[touchId];
+			this.removeTouchPoints.splice(touchIndex, 1);
+		}
+
+		var touchHandled = false;
 		for (var touchIndex = 0; touchIndex < this.objectStartTouchPoints.length; touchIndex++) {
 			var touchPoint = this.objectStartTouchPoints[touchIndex];
 			for (var objectIndex = 0; objectIndex < touchPoint.listenerObjects.length; objectIndex++) {
@@ -1647,37 +1683,29 @@ class ZetoEngine extends ZetoEventObject {
 						touchPoint: touchPoint,
 						phase: began,
 					};
-					this.dispatchObjectEvent(object, 'touch', touchEvent);
-					// TODO: Could implement a way to stop propagation to engine level using .started
+					if ((touchHandled = this.dispatchObjectEvent(object, 'touch', touchEvent) == true)) {
+						break;
+					}
 				}
 			}
 		}
 
-		for (var touchIndex = 0; touchIndex < this.activeTouchPoints.length; touchIndex++) {
-			var touchPoint = this.touchPoints[this.activeTouchPoints[touchIndex]];
-			if (touchPoint.started != TOUCH_STARTED_ENGINE) { // Can be TOUCH_STARTED_FALSE or TOUCH_STARTED_TRUE
-				touchPoint.started = TOUCH_STARTED_ENGINE;
+		if (!touchHandled) {
+			for (var touchIndex = 0; touchIndex < this.activeTouchPoints.length; touchIndex++) {
+				var touchPoint = this.touchPoints[this.activeTouchPoints[touchIndex]];
+				if (touchPoint.started != TOUCH_STARTED_ENGINE) {
+					// Can be TOUCH_STARTED_FALSE or TOUCH_STARTED_TRUE
+					touchPoint.started = TOUCH_STARTED_ENGINE;
 
-				var touchEvent = {
-					x: touchPoint.lastInputX,
-					y: touchPoint.lastInputY,
-					touchPoint: touchPoint,
-					phase: began,
-				};
-				this.dispatchEvent('touch', touchEvent); // Engine level
+					var touchEvent = {
+						x: touchPoint.lastInputX,
+						y: touchPoint.lastInputY,
+						touchPoint: touchPoint,
+						phase: began,
+					};
+					this.dispatchEvent('touch', touchEvent); // Engine level
+				}
 			}
-		}
-
-		for (var touchIndex = this.removeTouchPoints.length - 1; touchIndex >= 0; touchIndex--) {
-			var touchId = this.removeTouchPoints[touchIndex];
-
-			var activeIndex = this.activeTouchPoints.indexOf(touchId);
-			if (activeIndex > -1) {
-				// TODO: check alternatives
-				this.activeTouchPoints.splice(activeIndex, 1);
-			}
-			delete this.touchPoints[touchId];
-			this.removeTouchPoints.splice(touchIndex, 1);
 		}
 	}
 
@@ -1838,7 +1866,7 @@ class ZetoEngine extends ZetoEventObject {
 	dispatchObjectEvent(object, eventName, event) {
 		var targetEvent = { ...event };
 		targetEvent.target = object;
-		object.dispatchEvent(eventName, targetEvent);
+		return object.dispatchEvent(eventName, targetEvent);
 	}
 
 	drawUpdate(object, alpha = 1, isTouch = false, isHover = false) {
@@ -2011,7 +2039,6 @@ class ZetoEngine extends ZetoEventObject {
 		if (fill && createPattern) {
 			var pattern = this.context.createPattern(fill.image, patternRepeat);
 			return new ZetoFill(pattern, fill.image.width, fill.image.height);
-			
 		} else {
 			return fill;
 		}
@@ -2329,7 +2356,6 @@ class ZetoFill {
 	get rotation() {
 		return this.internal.rotation;
 	}
-
 }
 //////////////////////////////////////// Audio Engine
 class ZetoAudioEngine {
@@ -2421,9 +2447,7 @@ class ZetoAudioObject extends ZetoEventObject {
 		pitch: 1,
 	};
 
-	listeners = [
-		'complete',
-	];
+	listeners = ['complete'];
 
 	constructor(audioEngine, buffer, volume, time, loop) {
 		super();

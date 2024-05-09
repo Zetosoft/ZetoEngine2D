@@ -304,6 +304,8 @@ Available events for the engine object are:
  - **tap** This event is called when a tap event is detected
  - **key** This event is called when a keyboard event is detected
 
+Returning `true` on `touch` or `tap` events will prevent the event from being propagated to other objects or engine level listeners.
+
 ### Engine Objects
 
 Engine objects are the main objects that are used to create the game. They can be created using the `engine.newGroup`, `engine.newText`, `engine.newImage`, `engine.newImageRect`, `engine.newCircle`, `engine.newRoundedRect`, `engine.newRect`, `engine.newPolygon`, `engine.newImageSheet`, `engine.newSprite`, `engine.newButton` functions. The following properties and functions are available in the Engine Object class. These are much like Solar2D Display Objects.
