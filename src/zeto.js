@@ -340,32 +340,35 @@ class ZetoEngineObject extends ZetoEventObject {
 		};
 	}
 
-	draw(event) {
+	draw(context, event) {
 		var fill = this.internal.fill;
 		var path = this.path;
 
 		if (fill) {
 			if (fill.pattern) {
-				this.engine.context.fillStyle = fill.pattern;
-				this.engine.context.fill(path.path);
+				context.fillStyle = fill.pattern;
+				context.scale(path.internal.xScale, path.internal.yScale);
+				context.fill(path.path);
 			} else if (fill.image) {
 				var sheet = fill.sheet;
-				this.engine.context.drawImage(fill.image, sheet.x, sheet.y, sheet.width, sheet.height, path.left, path.top, path.width, path.height);
+				context.drawImage(fill.image, sheet.x, sheet.y, sheet.width, sheet.height, path.left, path.top, path.width, path.height);
 			} else {
 				// Shapes
-				this.engine.context.fillStyle = this.fillColor;
-				this.engine.context.scale(path.internal.xScale, path.internal.yScale);
-				this.engine.context.fill(path.path);
+				context.fillStyle = this.fillColor;
+				context.scale(path.internal.xScale, path.internal.yScale);
+				context.fill(path.path);
 			}
 		} else {
-			this.engine.context.fillStyle = this.fillColor;
+			context.fillStyle = this.fillColor;
 		}
 
 		if (this.strokeWidth > 0) {
-			this.engine.context.lineWidth = this.strokeWidth;
-			this.engine.context.strokeStyle = this.stroke;
-			this.engine.context.stroke(path.path);
+			context.lineWidth = this.strokeWidth;
+			context.strokeStyle = this.stroke;
+			context.stroke(path.path);
 		}
+
+		return context;
 	}
 
 	update(event) {
@@ -537,15 +540,17 @@ class ZetoTextObject extends ZetoEngineObject {
 		return this.values.textString;
 	}
 
-	draw(event) {
-		super.draw(event);
+	draw(context, event) {
+		super.draw(context, event);
 
-		this.engine.context.font = this.values.contextFont;
-		this.engine.context.fillStyle = this.fillColor;
+		context.font = this.values.contextFont;
+		context.fillStyle = this.fillColor;
 		for (var lineIndex = 0; lineIndex < this.values.lines.length; lineIndex++) {
 			var line = this.values.lines[lineIndex];
-			this.engine.context.fillText(line, 0, this.values.offsetY + (this.values.spacing + this.values.lineHeight) * lineIndex);
+			context.fillText(line, 0, this.values.offsetY + (this.values.spacing + this.values.lineHeight) * lineIndex);
 		}
+
+		return context;
 	}
 
 	calculateTextPath(newPath = false) {
@@ -709,6 +714,48 @@ class ZetoGroup extends ZetoEngineObject {
 		for (var childIndex = this.children.length - 1; childIndex >= 0; childIndex--) {
 			this.children[childIndex].destroy();
 		}
+	}
+}
+
+class ZetoContainer extends ZetoEngineObject {
+	view;
+	get children() {
+		return [this.view];
+	}
+
+	constructor(engine, x = 0, y = 0, width = 0, height = 0) {
+		super(engine, null, x, y);
+
+		this.fill = new ZetoPath();
+		this.fill.rect(-width * 0.5, -height * 0.5, width, height);
+		this.fillColor = '#00000000';
+
+		this.calculatePath();
+		this.updateBounds();
+
+		this.view = new ZetoGroup(engine, 0, 0);
+		this.view.parent = this;
+	}
+
+	insert(childObject, skipUpdate = false) {
+		return this.view.insert(childObject, skipUpdate);
+	}
+
+	removeAll() {
+		this.view.removeAll();
+	}
+
+	draw(context, event) {
+		super.draw(context, event);
+
+		context.restore();
+		context.save();
+
+		context.beginPath();
+		context.rect(-this.width * 0.5, -this.height * 0.5, this.width, this.height);
+		context.clip();
+
+		return context;
 	}
 }
 
@@ -1639,7 +1686,7 @@ class ZetoEngine extends ZetoEventObject {
 
 		this.clearCanvas();
 		this.updateInput();
-		this.drawUpdate(this.rootGroup); // Scene graph update
+		this.drawUpdate(this.context, this.rootGroup); // Scene graph update
 		this.updateTouchPoints();
 
 		if (!this.paused) {
@@ -1740,7 +1787,7 @@ class ZetoEngine extends ZetoEventObject {
 		this.physics.update(event);
 	}
 
-	touchUpdate(object, parentTouch = false) {
+	touchUpdate(context, object, parentTouch = false) {
 		if (this.activeTouchPoints.length <= 0) {
 			return false;
 		}
@@ -1763,7 +1810,7 @@ class ZetoEngine extends ZetoEventObject {
 			}
 
 			if (touchObject || parentTouch) {
-				if (this.context.isPointInPath(object.path.path, touchPoint.lastInputX, touchPoint.lastInputY)) {
+				if (context.isPointInPath(object.path.path, touchPoint.lastInputX, touchPoint.lastInputY)) {
 					if (parentTouch) {
 						if (touchPoint.listenerObjects.indexOf(parentTouch) == -1) {
 							// Can already be added by sibling object
@@ -1786,19 +1833,19 @@ class ZetoEngine extends ZetoEventObject {
 		return touchObject || parentTouch;
 	}
 
-	hoverUpdate(object, parentHover = false) {
+	hoverUpdate(context, object, parentHover = false) {
 		// TODO: this can be optimized (To start off remove in mobile) use isGroup(), etc
 		var hoverObject = object.hasEventListener(hover) || parentHover; // hoverObject can be a parent and not the object itself
 		if (hoverObject) {
 			if (!hoverObject.hover) {
-				if (this.context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) {
+				if (context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) {
 					hoverObject.hover = this.frameEvent.frame;
 
 					var hoverEvent = { x: this.mouseX, y: this.mouseY, phase: began };
 					this.dispatchObjectEvent(hoverObject, hover, hoverEvent);
 				}
 			} else if (hoverObject.hover != this.frameEvent.frame) {
-				if (!hoverObject.isVisible || hoverObject.alpha == 0 || !this.context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) {
+				if (!hoverObject.isVisible || hoverObject.alpha == 0 || !context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) {
 					// My guess is that this is the main bottleneck
 					hoverObject.hover = false;
 
@@ -1810,55 +1857,55 @@ class ZetoEngine extends ZetoEventObject {
 		}
 	}
 
-	debugDraw(object) {
+	debugDraw(context, object) {
 		if (this.debug) {
-			this.context.globalAlpha = 1;
-			this.context.lineWidth = 1;
-			this.context.fillStyle = this.debugColor;
+			context.globalAlpha = 1;
+			context.lineWidth = 1;
+			context.fillStyle = this.debugColor;
 
 			if (isGroup(object)) {
 				// Cross for groups
-				this.context.save();
-				this.context.rotate(45 * radianMultiplier);
-				this.context.fillRect(0, -4, 2, 10);
-				this.context.fillRect(-4, 0, 10, 2);
-				this.context.restore();
+				context.save();
+				context.rotate(45 * radianMultiplier);
+				context.fillRect(0, -4, 2, 10);
+				context.fillRect(-4, 0, 10, 2);
+				context.restore();
 			} else {
 				// Dot for anything else
-				this.context.fillRect(0, 0, 3, 3);
+				context.fillRect(0, 0, 3, 3);
 
 				if (object.bounds) {
 					// Draw bounds except for root group
-					this.context.strokeStyle = this.debugBoundsColor;
-					this.context.save();
-					this.context.rotate(-object.bounds.world.rotation * radianMultiplier);
-					this.context.strokeRect(object.bounds.world.x1, object.bounds.world.y1, object.bounds.world.width, object.bounds.world.height);
-					this.context.restore();
+					context.strokeStyle = this.debugBoundsColor;
+					context.save();
+					context.rotate(-object.bounds.world.rotation * radianMultiplier);
+					context.strokeRect(object.bounds.world.x1, object.bounds.world.y1, object.bounds.world.width, object.bounds.world.height);
+					context.restore();
 				}
 			}
 
 			// TODO: this is not working on groups (They have no path, add isPointInPath object to draw here)
-			this.context.strokeStyle = this.debugColor;
+			context.strokeStyle = this.debugColor;
 			for (var touchIndex = 0; touchIndex < this.activeTouchPoints.length; touchIndex++) {
 				var touchPoint = this.touchPoints[this.activeTouchPoints[touchIndex]];
 				if (touchPoint.listenerObjects && touchPoint.listenerObjects.indexOf(object) > -1) {
-					this.context.strokeStyle = this.debugTapColor;
-					this.context.fillText('Touching', 0, 0);
+					context.strokeStyle = this.debugTapColor;
+					context.fillText('Touching', 0, 0);
 					break;
 				}
 			}
-			this.context.stroke(object.path.path);
+			context.stroke(object.path.path);
 
 			if (object.body) {
-				this.physics.debugDraw(this.context, object.body);
+				this.physics.debugDraw(context, object.body);
 			}
 		}
 	}
 
-	drawUpdateChildren(parent, alpha, isTouch, isHover) {
+	drawUpdateChildren(context, parent, alpha = 1, isTouch, isHover) {
 		if (parent.children && parent.children.length > 0) {
 			for (var childIndex = 0; childIndex < parent.children.length; childIndex++) {
-				this.drawUpdate(parent.children[childIndex], alpha, isTouch, isHover);
+				this.drawUpdate(context, parent.children[childIndex], alpha, isTouch, isHover);
 			}
 		}
 	}
@@ -1869,30 +1916,30 @@ class ZetoEngine extends ZetoEventObject {
 		return object.dispatchEvent(eventName, targetEvent);
 	}
 
-	drawUpdate(object, alpha = 1, isTouch = false, isHover = false) {
-		this.context.save();
-		this.context.translate(object.x, object.y);
-		this.context.rotate(object.rotation * radianMultiplier);
-		this.context.scale(object.xScale, object.yScale);
+	drawUpdate(context, object, alpha = 1, isTouch = false, isHover = false) {
+		context.save();
+		context.translate(object.x, object.y);
+		context.rotate(object.rotation * radianMultiplier);
+		context.scale(object.xScale, object.yScale);
 
 		this.dispatchObjectEvent(object, 'enterframe', this.frameEvent);
 
 		object.update(this.frameEvent);
 
 		if (object.isVisible) {
-			this.context.globalAlpha = alpha * object.alpha;
+			context.globalAlpha = alpha * object.alpha;
 
 			// translate anchors
-			this.context.translate(object.internal.anchorOffsetX, object.internal.anchorOffsetY);
-			object.draw(this.frameEvent);
-			var isTouch = this.touchUpdate(object, isTouch);
-			var isHover = this.hoverUpdate(object, isHover);
-			this.drawUpdateChildren(object, this.context.globalAlpha, isTouch, isHover);
+			context.translate(object.internal.anchorOffsetX, object.internal.anchorOffsetY);
+			var objectContext = object.draw(context, this.frameEvent);
+			var isTouch = this.touchUpdate(objectContext, object, isTouch);
+			var isHover = this.hoverUpdate(objectContext, object, isHover);
+			this.drawUpdateChildren(objectContext, object, context.globalAlpha, isTouch, isHover);
 		}
 
-		this.debugDraw(object);
+		this.debugDraw(context, object);
 
-		this.context.restore();
+		context.restore();
 
 		this.dispatchObjectEvent(object, 'exitframe', this.frameEvent);
 	}
@@ -1921,6 +1968,11 @@ class ZetoEngine extends ZetoEventObject {
 	newGroup(x, y) {
 		var group = new ZetoGroup(this, x, y);
 		return this.rootGroup.insert(group, true);
+	}
+
+	newContainer(x, y, width, height) {
+		var container = new ZetoContainer(this, x, y, width, height);
+		return this.rootGroup.insert(container, true);
 	}
 
 	newCamera(x, y) {
@@ -2317,14 +2369,14 @@ class ZetoFill {
 	}
 
 	set xScale(value) {
-		var xDiff = value - this.internal.xScale;
+		var xDiff = value / this.internal.xScale;
 		this.matrix.scaleSelf(xDiff, 1);
 		this.pattern.setTransform(this.matrix);
 		this.internal.xScale = value;
 	}
 
 	set yScale(value) {
-		var yDiff = value - this.internal.yScale;
+		var yDiff = value / this.internal.yScale;
 		this.matrix.scaleSelf(1, yDiff);
 		this.pattern.setTransform(this.matrix);
 		this.internal.yScale = value;

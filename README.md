@@ -191,6 +191,7 @@ Other important properties containing other parts of the engine are:
 The following functions create Engine Objects.
 
  - **engine.newGroup(x, y)** Creates a new group object
+ - **engine.newContainer(x, y, width, height)** Creates a new container object. Containers are like groups, but they have a width and height. Everything inside the container is clipped to the container bounds.
  - **engine.newCamera(x, y)** Creates a new camera object
  - **engine.newText(options)** Creates a new text object
  - **engine.newImage(id, x, y)** Creates a new image object
