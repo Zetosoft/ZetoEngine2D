@@ -754,10 +754,11 @@ class ZetoContainer extends ZetoEngineObject {
 		context.beginPath();
 		context.rect(-this.width * 0.5, -this.height * 0.5, this.width, this.height);
 		context.clip();
-
+		
 		return context;
 	}
 }
+
 
 class ZetoStrings extends ZetoEventObject {
 	strings = [{ en: {} }, { es: {} }];
@@ -2343,6 +2344,8 @@ class ZetoFill {
 		xScale: 1,
 		yScale: 1,
 		rotation: 0,
+		width: 0,
+		height: 0,
 	};
 
 	constructor(pattern, width, height) {
@@ -2350,8 +2353,28 @@ class ZetoFill {
 		this.matrix = new DOMMatrix();
 		this.pattern.setTransform(this.matrix);
 
+		this.internal.width = width;
+		this.internal.height = height;
 		this.x = width * 0.5;
 		this.y = height * 0.5;
+	}
+
+	set width(value) {
+		this.xScale = value / this.internal.width;
+		this.x = value * 0.5;
+	}
+
+	set height(value) {
+		this.yScale = value / this.internal.height;
+		this.y = value * 0.5;
+	}
+
+	get width() {
+		return this.internal.width * this.internal.xScale;
+	}
+
+	get height() {
+		return this.internal.height * this.internal.yScale;
 	}
 
 	set x(value) {
