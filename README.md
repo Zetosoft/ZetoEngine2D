@@ -622,12 +622,15 @@ Available body and engine listeners are:
 
  The collision listener is called when two bodies collide. The event will have the following properties:
 
+ - **event.x** The x position of the first contact point
+ - **event.y** The y position of the first contact point
  - **event.phase = 'began', 'end'**
- - **event.target**
- - **event.other**
- - **event.collision**
+ - **event.target** The object that the listener is attached to
+ - **event.other** The object that the target is colliding with
+ - **event.collision** The original pair collision object emitted by Matter.js 
+ - **event.pair** The original pair object emitted by Matter.js
 
-The `collision` property is an object that contains the collision properties and is the original object emitted by Matter.js. The `target` property is the object that the listener is attached to, and the `other` property is the object that the target is colliding with. You can either set the listener on the engine object to listen to all collisions or set the listener on a specific object to listen to collisions with that object.
+You can either set the listener on the engine object to listen to all collisions or set the listener on a specific object to listen to collisions with that object.
 
 ### Strings Engine
 

@@ -3499,14 +3499,23 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 			var bodyB = matterBodyB.zBody;
 
 			var phase = event.name == 'collisionStart' ? began : end;
-
+			var contact = pair.contacts.find((contact) => contact != undefined);
+			var zEvent = {
+				x: contact.vertex.x,
+				y: contact.vertex.y,
+				phase: phase,
+				target: bodyA,
+				other: bodyB,
+				collision: pair.collision,
+				pair: pair,
+			};
 			if (bodyA.hasEventListener('collision')) {
-				bodyA.dispatchEvent('collision', { phase: phase, target: bodyA, other: bodyB, collision: pair.collision });
+				bodyA.dispatchEvent('collision', zEvent);
 			}
 			if (bodyB.hasEventListener('collision')) {
-				bodyB.dispatchEvent('collision', { phase: phase, target: bodyB, other: bodyA, collision: pair.collision });
+				bodyB.dispatchEvent('collision', zEvent);
 			}
-			this.dispatchEvent('collision', { phase: phase, target: bodyA, other: bodyB, collision: pair.collision });
+			this.dispatchEvent('collision', zEvent);
 		}
 	}
 
@@ -3691,7 +3700,7 @@ class ZetoPhysicsBody extends ZetoEventObject {
 
 		var anchorOffsetX = this.object.internal.anchorOffsetX;
 		var anchorOffsetY = this.object.internal.anchorOffsetY;
-		mBody.translate(this.matterBody, { x: -anchorOffsetX, y: anchorOffsetY });
+		mBody.translate(this.matterBody, { x: anchorOffsetX, y: anchorOffsetY });
 		this.internal.offsetX += -anchorOffsetX;
 		this.internal.offsetY += -anchorOffsetY;
 
