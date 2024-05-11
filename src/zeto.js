@@ -263,12 +263,24 @@ class ZetoEngineObject extends ZetoEventObject {
 
 	set anchorX(value) {
 		this.internal.anchorX = value;
-		this.internal.anchorOffsetX = -(value - 0.5) * this.bounds.local.width;
+		var newOffset = (value - 0.5) * this.bounds.local.width;
+		if (this.body) {
+			var offsetDiff = newOffset + this.internal.anchorOffsetX;
+			mBody.translate(this.body.matterBody, { x: -offsetDiff, y: 0 });
+			this.body.internal.offsetX += offsetDiff;
+		}
+		this.internal.anchorOffsetX = -newOffset;
 	}
 
 	set anchorY(value) {
 		this.internal.anchorY = value;
-		this.internal.anchorOffsetY = -(value - 0.5) * this.bounds.local.height;
+		var newOffset = (value - 0.5) * this.bounds.local.height;
+		if (this.body) {
+			var offsetDiff = newOffset + this.internal.anchorOffsetY;
+			mBody.translate(this.body.matterBody, { x: 0, y: -offsetDiff });
+			this.body.internal.offsetY += offsetDiff;
+		}
+		this.internal.anchorOffsetY = -newOffset;
 	}
 
 	get anchorX() {
@@ -754,11 +766,10 @@ class ZetoContainer extends ZetoEngineObject {
 		context.beginPath();
 		context.rect(-this.width * 0.5, -this.height * 0.5, this.width, this.height);
 		context.clip();
-		
+
 		return context;
 	}
 }
-
 
 class ZetoStrings extends ZetoEventObject {
 	strings = [{ en: {} }, { es: {} }];
@@ -2360,13 +2371,13 @@ class ZetoFill {
 	}
 
 	set width(value) {
-		this.xScale = value / this.internal.width;
 		this.x = value * 0.5;
+		this.xScale = value / this.internal.width;
 	}
 
 	set height(value) {
-		this.yScale = value / this.internal.height;
 		this.y = value * 0.5;
+		this.yScale = value / this.internal.height;
 	}
 
 	get width() {
@@ -3443,7 +3454,7 @@ class ZetoTransition {
 class ZetoPhysicsEngine extends ZetoEventObject {
 	paused = true;
 
-	debugColor = '#FF880022';
+	debugColor = '#FF880077';
 
 	matterEngine;
 	matterWorld;
@@ -3518,7 +3529,6 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 		context.scale(body.object.internal.xScaleInverse, body.object.internal.yScaleInverse);
 		context.lineWidth = 1;
 		context.fillStyle = body.debugColor ?? this.debugColor;
-		// TODO: missing path scale
 		context.fill(body.path.path);
 	}
 
@@ -3632,9 +3642,11 @@ class ZetoPhysicsBody extends ZetoEventObject {
 	createPath() {
 		var vertices = this.matterBody.vertices;
 		this.path = new ZetoPath();
+		var x = this.object.x + this.object.internal.anchorOffsetX;
+		var y = this.object.y + this.object.internal.anchorOffsetY;
 		for (var vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
 			var vertex = vertices[vertexIndex];
-			this.path.lineTo(vertex.x - this.object.x, vertex.y - this.object.y);
+			this.path.lineTo(vertex.x - x, vertex.y - y);
 		}
 		this.path.closePath();
 	}
@@ -3676,6 +3688,12 @@ class ZetoPhysicsBody extends ZetoEventObject {
 			this.shapeType = 'box';
 			this.matterBody = mBodies.rectangle(this.object.x, this.object.y, this.object.width, this.object.height, bodyOptions);
 		}
+
+		var anchorOffsetX = this.object.internal.anchorOffsetX;
+		var anchorOffsetY = this.object.internal.anchorOffsetY;
+		mBody.translate(this.matterBody, { x: -anchorOffsetX, y: anchorOffsetY });
+		this.internal.offsetX += -anchorOffsetX;
+		this.internal.offsetY += -anchorOffsetY;
 
 		this.matterBody.collisionFilter = collisionFilter;
 		this.matterBody.zBody = this; // Custom property
