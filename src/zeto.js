@@ -2939,7 +2939,7 @@ class ZetoParticleEngine extends ZetoEventObject {
 	}
 
 	updateParticle(emitter, particle, delta) {
-		if (emitter.emitterType == ParticleEngine.particleTypeRadial) {
+		if (emitter.emitterType == ZetoParticleEngine.particleTypeRadial) {
 			particle.angle += particle.degreesPerSecond * delta;
 			particle.radius += particle.radiusDelta * delta;
 
@@ -3066,7 +3066,7 @@ class ZetoParticle {
 class ZetoEmitter extends ZetoGroup {
 	particleEngine;
 
-	emitterType = ParticleEngine.particleTypeGravity;
+	emitterType = ZetoParticleEngine.particleTypeGravity;
 
 	texture;
 
@@ -3513,6 +3513,8 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 				bodyA.dispatchEvent('collision', zEvent);
 			}
 			if (bodyB.hasEventListener('collision')) {
+				zEvent.target = bodyB;
+				zEvent.other = bodyA;
 				bodyB.dispatchEvent('collision', zEvent);
 			}
 			this.dispatchEvent('collision', zEvent);
