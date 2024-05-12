@@ -2267,6 +2267,7 @@ class ZetoEngine extends ZetoEventObject {
 			phase: 'create',
 		};
 		module.create(createEvent);
+		return module;
 	}
 
 	async unload(moduleName, params, unloadedListener) {
