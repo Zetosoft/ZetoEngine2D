@@ -162,20 +162,22 @@ class ZetoEngineObject extends ZetoEventObject {
 			y2: 0,
 			width: 0,
 			height: 0,
-
 			rotation: 0,
 		},
 	};
+
+	worldTransform = new DOMMatrix();
 
 	fillColor;
 	alpha = 1;
 	isVisible = true;
 
 	parent;
-	x = 0;
-	y = 0;
 
 	internal = {
+		x: 0,
+		y: 0,
+
 		width: 0,
 		height: 0,
 
@@ -243,6 +245,26 @@ class ZetoEngineObject extends ZetoEventObject {
 
 	calculateSpritePath() {
 		this.path.rect(-this.fill.sheet.width * 0.5, -this.fill.sheet.height * 0.5, this.fill.sheet.width, this.fill.sheet.height);
+	}
+
+	get x() {
+		return this.internal.x;
+	}
+
+	get y() {
+		return this.internal.y;
+	}
+
+	set x(value) {
+		var diff = value - this.internal.x;
+		this.internal.x = value;
+		this.worldTransform.translateSelf(diff, 0);
+	}
+
+	set y(value) {
+		var diff = value - this.internal.y;
+		this.internal.y = value;
+		this.worldTransform.translateSelf(0, diff);
 	}
 
 	get width() {
@@ -480,6 +502,18 @@ class ZetoEngineObject extends ZetoEventObject {
 			}
 		}
 	}
+
+	localToContent(x, y) {
+		const contentX = this.worldTransform.a * x + this.worldTransform.c * y + this.worldTransform.e;
+		const contentY = this.worldTransform.b * x + this.worldTransform.d * y + this.worldTransform.f;
+		return { x: contentX, y: contentY };
+	}
+
+	contentToLocal(x, y) {
+		const localX = this.worldTransform.a * x + this.worldTransform.b * y + this.worldTransform.e;
+		const localY = this.worldTransform.c * x + this.worldTransform.d * y + this.worldTransform.f;
+		return { x: localX, y: localY };
+	}
 }
 
 class ZetoTextObject extends ZetoEngineObject {
@@ -655,7 +689,7 @@ class ZetoGroup extends ZetoEngineObject {
 		return this.bounds.local.height;
 	}
 
-	insert(childObject, skipUpdate = false) {
+	insert(childObject, skipBoundsUpdate = false) {
 		if (childObject.parent && childObject.parent != this) {
 			var index = childObject.parent.children.indexOf(childObject);
 			childObject.parent.children.splice(index, 1);
@@ -668,9 +702,11 @@ class ZetoGroup extends ZetoEngineObject {
 			childObject.parent = this;
 		}
 
-		if (!skipUpdate) {
+		if (!skipBoundsUpdate) {
 			this.updateBounds();
 		}
+
+		childObject.worldTransform = childObject.worldTransform.preMultiplySelf(this.worldTransform);
 
 		return childObject;
 	}
@@ -749,8 +785,8 @@ class ZetoContainer extends ZetoEngineObject {
 		this.view.parent = this;
 	}
 
-	insert(childObject, skipUpdate = false) {
-		return this.view.insert(childObject, skipUpdate);
+	insert(childObject, skipBoundsUpdate = false) {
+		return this.view.insert(childObject, skipBoundsUpdate);
 	}
 
 	removeAll() {
@@ -1933,6 +1969,8 @@ class ZetoEngine extends ZetoEventObject {
 		context.translate(object.x, object.y);
 		context.rotate(object.rotation * radianMultiplier);
 		context.scale(object.xScale, object.yScale);
+
+		object.worldTransform = context.getTransform();
 
 		this.dispatchObjectEvent(object, 'enterframe', this.frameEvent);
 

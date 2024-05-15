@@ -328,6 +328,7 @@ Engine objects are the main objects that are used to create the game. They can b
  - **object.yScale = 1** The y scale of the object
  - **object.fill** The fill object of the object, can be an image or a gradient
  - **object.path** The path object of the object, `ZetoEnginePath` object is a wrapper for a `Path2D` object
+ - **object.worldTransform** A DOMMatrix object representing the world transform of the object
 
 And the following functions are available in the Engine Object class.
 
@@ -335,6 +336,8 @@ And the following functions are available in the Engine Object class.
  - **object.destroy()** Destroys the object, same effect as calling `engine.remove(object)`
  - **object.toFront()** Brings the object to the front of its parent group
  - **object.toBack()** Sends the object to the back of its parent group
+ - **object.localToContent(x, y)** Converts a local point to a content (global) point
+ - **object.contentToLocal(x, y)** Converts a content (global) point to a local point
 
 Available listeners are:
 
