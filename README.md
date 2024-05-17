@@ -307,6 +307,13 @@ Available events for the engine object are:
 
 Returning `true` on `touch` or `tap` events will prevent the event from being propagated to other objects or engine level listeners.
 
+The `touch` and `key` events will have the following phases:
+
+ - **began** When the touch or key event starts
+ - **moved** When the touch or key event moves
+ - **ended** When the touch or key event ends
+ - **hold** When the touch or key event is held
+
 ### Engine Objects
 
 Engine objects are the main objects that are used to create the game. They can be created using the `engine.newGroup`, `engine.newText`, `engine.newImage`, `engine.newImageRect`, `engine.newCircle`, `engine.newRoundedRect`, `engine.newRect`, `engine.newPolygon`, `engine.newImageSheet`, `engine.newSprite`, `engine.newButton` functions. The following properties and functions are available in the Engine Object class. These are much like Solar2D Display Objects.
@@ -627,7 +634,7 @@ Available body and engine listeners are:
 
  - **event.x** The x position of the first contact point
  - **event.y** The y position of the first contact point
- - **event.phase = 'began', 'end'**
+ - **event.phase = 'began', 'ended'**
  - **event.target** The object that the listener is attached to
  - **event.other** The object that the target is colliding with
  - **event.collision** The original pair collision object emitted by Matter.js 
