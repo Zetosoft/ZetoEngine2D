@@ -509,8 +509,9 @@ class ZetoEngineObject extends ZetoEventObject {
 	}
 
 	contentToLocal(x, y) {
-		const localX = this.worldTransform.a * x + this.worldTransform.b * y + this.worldTransform.e;
-		const localY = this.worldTransform.c * x + this.worldTransform.d * y + this.worldTransform.f;
+		const inverseMatrix = this.worldTransform.inverse();
+		const localX = inverseMatrix.a * x + inverseMatrix.c * y + inverseMatrix.e;
+		const localY = inverseMatrix.b * x + inverseMatrix.d * y + inverseMatrix.f;
 		return { x: localX, y: localY };
 	}
 }
@@ -1074,13 +1075,6 @@ class ZetoButton extends ZetoWidget {
 	}
 
 	#exitframe(event) {
-		// TODO: should differentiate between hold and tap
-		if (this.holding) {
-			if (this.onHoldListener) {
-				this.onHoldListener({ target: this, frame: this.engine.frameEvent.frame - this.holding });
-			}
-		}
-
 		if (this.onTapListener) {
 			if (this.engine.frameEvent.timeStamp - this.tapTimestamp < this.engine.tapTime) {
 				this.#setPressedView(true);
@@ -1120,6 +1114,11 @@ class ZetoButton extends ZetoWidget {
 				}
 				this.holding = this.engine.frameEvent.frame;
 				this.#setPressedView(true);
+			} else if (event.phase == hold) {
+				this.#setPressedView(true);
+				if (this.onHoldListener) {
+					this.onHoldListener({ target: this, frame: this.engine.frameEvent.frame - this.holding });
+				}
 			} else if (event.phase == ended) {
 				if (this.onReleaseListener) {
 					this.onReleaseListener(event);
