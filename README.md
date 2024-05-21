@@ -10,8 +10,8 @@ For a live demo, visit [ZetoEngine2D author page](https://basiliogerman.com). Wo
 - Place `zeto.js` in your javascript folder or its own folder. your game files should be in the same folder as `zeto.js` or a subfolder.
 - ZetoEngine2D uses Matter.js for physics. You can include it in your project by including the `matter.js` file in your project. ZetoEngine2D uses version 0.19.0. Future versions might also work, but are not tested. If you do not include Matter.js, the engine will still work, but you will not be able to use physics. Matter.js should be loaded before `zeto.js`.
 - ZetoEngine2D will load any game files relative to the location of `zeto.js`. This means that if you have a file in a subfolder, you can include it in your game by using the path relative to `zeto.js`.
-- Your HTML file should include a canvas element with the id `canvas`. This is where the game will be rendered. You can also include an optional `canvas` parameter in the `new Engine()` call to specify a different canvas id.
-- The following is an HTML template for your game. You can copy and paste this into your project and modify it as needed. This template loads the engine and the game files. The engine is started with the `new Engine()` call. The `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. In this case, ZetoEngine2D would look for a file inside `/js/game/` called `main.js`.
+- Your HTML file should include a canvas element with the id `canvas`. This is where the game will be rendered. You can also include an optional `canvas` parameter in the `new ZetoEngine()` call to specify a different canvas id.
+- The following is an HTML template for your game. You can copy and paste this into your project and modify it as needed. This template loads the engine and the game files. The engine is started with the `new ZetoEngine()` call. The `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. In this case, ZetoEngine2D would look for a file inside `/js/game/` called `main.js`.
 
 ```html
 <!DOCTYPE html>
@@ -80,7 +80,7 @@ function onAssetsLoaded(event) {
 
     loadingText.text = 'Welcome!';
     var introZoom = engine.getInfo('isMobile') ? 0.75 : 1;
-    engine.transition.to(camera, { zoom: introZoom, time: 2000, easing: Easing.outQuad });
+    engine.transition.to(camera, { zoom: introZoom, time: 2000, easing: ZetoEasing.outQuad });
 
     engine.transition.to(loadingBarGroup, { alpha: 0, delay: 200, time: 300 });
     engine.transition.to(loadingGroup, {
@@ -494,16 +494,16 @@ Transition parameters are passed as an object to the `to` and `from` functions. 
 
  Available easing functions are:
 
- - **Easing.linear**
- - **Easing.inQuad**
- - **Easing.outQuad**
- - **Easing.inOutQuad**
- - **Easing.outBack**
- - **Easing.inBack**
- - **Easing.inOutBack**
- - **Easing.inSine**
- - **Easing.outSine**
- - **Easing.inOutSine**
+ - **ZetoEasing.linear**
+ - **ZetoEasing.inQuad**
+ - **ZetoEasing.outQuad**
+ - **ZetoEasing.inOutQuad**
+ - **ZetoEasing.outBack**
+ - **ZetoEasing.inBack**
+ - **ZetoEasing.inOutBack**
+ - **ZetoEasing.inSine**
+ - **ZetoEasing.outSine**
+ - **ZetoEasing.inOutSine**
 
  You can also create your own easing functions. The following is the linear easing function:
 
@@ -518,13 +518,13 @@ function linear(t, tMax, start, delta) {
  - Move an object to x: 100, y: 100 in 1 second
 
 ```javascript
-engine.transition.to(object, { x: 100, y: 100, time: 1000, easing: Easing.outQuad });
+engine.transition.to(object, { x: 100, y: 100, time: 1000, easing: ZetoEasing.outQuad });
 ```
 
  - Make an object transition to other object position in 1 second, and call a function when the transition is complete. This will move `object.x` to `otherObject.x` and `object.y` to `otherObject.y`
 
 ```javascript
-engine.transition.to(object, { x: otherObject, y: otherObject, time: 1000, easing: Easing.outQuad, onComplete: function(event) {
+engine.transition.to(object, { x: otherObject, y: otherObject, time: 1000, easing: ZetoEasing.outQuad, onComplete: function(event) {
     console.log('Transition complete');
 }});
 ```
@@ -532,13 +532,13 @@ engine.transition.to(object, { x: otherObject, y: otherObject, time: 1000, easin
  - Increase the coin counter text to the new value in 1 second
 
 ```javascript
-engine.transition.to(coinCounterText, { text: newValue, time: 1000, easing: Easing.outQuad });
+engine.transition.to(coinCounterText, { text: newValue, time: 1000, easing: ZetoEasing.outQuad });
 ```
 
 - Multiple listeners can be added to the `onComplete` property, like this:
 
 ```javascript
-engine.transition.to(object, { x: 100, y: 100, time: 1000, easing: Easing.outQuad, onComplete: [function(event) {
+engine.transition.to(object, { x: 100, y: 100, time: 1000, easing: ZetoEasing.outQuad, onComplete: [function(event) {
 	console.log('Transition complete');
 }, function(event) {
 	console.log('Another function');
@@ -554,6 +554,12 @@ The Particle Engine class is responsible for creating and managing particle syst
 The Particle engine has the following functions available:
 
  - **engine.particles.newEmitter(emitterParams)** Creates and returns a new emitter object
+
+Aside from the regular emitter parameters, you can specify the following additional parameters in the emitterParams object:
+
+ - **emitterParams.x = 0** The x position of the emitter
+ - **emitterParams.y = 0** The y position of the emitter
+ - **emitterParams.absolutePosition = true/group** If true, the emitter will use absolute positioning, if group, the emitter will use group positioning. This means that the emitter will use the group as the parent for particles, useful to create effects like particle trails like smoke or fire
 
 #### Emitter Parameters
 
@@ -701,4 +707,4 @@ The audio engine will try to initialize the audio context on the first interacti
  - The engine is designed to be simple and easy to use. It is not meant to be a full-featured game engine like Solar2D or Phaser.
  - The engine is designed to be used with the ZetoEngine2D module system. Modules are loaded and unloaded dynamically, allowing you to create complex games with multiple scenes and assets. This uses the Javascript module system, so you can use `import` and `export` to create modules, this might not work on older browsers.
  - Any feedback is appreciated. If you have any suggestions, find any bugs or want to make a donation, please let us know. You can contact us at [ZetoSoft.com](https://zetosoft.com).
- 
+ - All classes are exposed in the global scope, so you can access them directly or extend them. For example, you can create a new class that extends the `ZetoEngineObject` class and add your own properties and draw functions.

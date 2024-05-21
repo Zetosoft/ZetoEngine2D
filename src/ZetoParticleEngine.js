@@ -85,28 +85,10 @@ class ZetoParticleEngine extends ZetoEventObject {
 		particle.startPos.y = emitter.sourcePositiony;
 
 		if (particle.image.parent != emitter) {
-			var relativeX = 0;
-			var relativeY = 0;
-			var parent = emitter;
-
-			// TODO: this does not work if the emitter and absolute parent are not in the same branch
-			// TODO: implement localToContent and contentToLocal funcs, should fix this
-			// maybe with contet.getTransform? Needs to be fast
-			while (parent && parent != particle.image.parent) {
-				var parentRotation = parent.rotation * radianMultiplier;
-				var cos = mathCos(parentRotation);
-				var sin = mathSin(parentRotation);
-				var rotatedX = relativeX * cos - relativeY * sin;
-				var rotatedY = relativeX * sin + relativeY * cos;
-
-				relativeX = rotatedX + parent.x;
-				relativeY = rotatedY + parent.y;
-
-				parent = parent.parent;
-			}
-
-			particle.position.x += relativeX;
-			particle.position.y += relativeY;
+            var contentPosition = emitter.localToContent(particle.position.x, particle.position.y);
+            var localPosition = particle.image.parent.contentToLocal(contentPosition.x, contentPosition.y);
+			particle.position.x = localPosition.x;
+			particle.position.y = localPosition.y;
 
 			particle.image.toBack();
 		}
