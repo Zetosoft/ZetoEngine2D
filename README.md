@@ -154,7 +154,7 @@ The ZetoEngine2D API is similar to Solar2D. The following is a rough outline of 
 
 ### Engine
 
-The Engine class is the main class of the ZetoEngine2D. It is responsible for rendering the game, loading assets, and managing the game loop. The following properties and functions are available in the Engine class. Most of the properties are meant to be read-only, but some can be modified to change the behavior of the engine.
+The ZetoEngine class is the main class of the ZetoEngine2D. It is responsible for rendering the game, loading assets, and managing the game loop. The following properties and functions are available in the ZetoEngine class. Most of the properties are meant to be read-only, but some can be modified to change the behavior of the engine.
 
  - **engine.debug = false** Set to true to enable visual debug mode
  - **engine.debugTapColor = '#FF00FFBB'**
