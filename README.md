@@ -6,7 +6,7 @@ For a live demo, visit [ZetoEngine2D author page](https://basiliogerman.com). Wo
 
 ## Getting started
 
-- Download the latest js file from the src folder.
+- Download the latest js file from the dist folder.
 - Place `zeto.js` in your javascript folder or its own folder. your game files should be in the same folder as `zeto.js` or a subfolder.
 - ZetoEngine2D uses Matter.js for physics. You can include it in your project by including the `matter.js` file in your project. ZetoEngine2D uses version 0.19.0. Future versions might also work, but are not tested. If you do not include Matter.js, the engine will still work, but you will not be able to use physics. Matter.js should be loaded before `zeto.js`.
 - ZetoEngine2D will load any game files relative to the location of `zeto.js`. This means that if you have a file in a subfolder, you can include it in your game by using the path relative to `zeto.js`.
