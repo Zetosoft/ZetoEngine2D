@@ -1,4 +1,5 @@
 import { ZetoEngineObject } from './ZetoEngineObject.js';
+import { mathFloor } from './constants.js';
 
 class ZetoSprite extends ZetoEngineObject {
 	imageSheet;
