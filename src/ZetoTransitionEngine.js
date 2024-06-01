@@ -109,7 +109,7 @@ class ZetoTransitionEngine extends ZetoEventObject {
 	cancel(object) {
 		if (isTransition(object)) {
 			object.remove = true;
-		} else if (object.transitions) {
+		} else if (object && object.transitions) {
 			for (var transitionIndex = object.transitions.length - 1; transitionIndex >= 0; transitionIndex--) {
 				var transition = object.transitions[transitionIndex];
 				transition.remove = true;
