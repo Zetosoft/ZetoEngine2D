@@ -21,6 +21,8 @@ class ZetoTransition {
 	currentDelay = 0;
 	currentTime = 0;
 
+	complete = false;
+	started = false;
 	remove = false;
 
 	constructor(target, delay = 0, time = 300, easing = null, onStart = null, onComplete = null, targetValues = null, fromValues = null) {

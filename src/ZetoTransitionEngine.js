@@ -1,4 +1,5 @@
 import { ZetoEventObject } from './ZetoEventObject.js';
+import { ZetoTransition } from './ZetoTransition.js';
 import { isFunction, isArray, isTransition } from './constants.js';
 
 class ZetoTransitionEngine extends ZetoEventObject {
@@ -40,15 +41,19 @@ class ZetoTransitionEngine extends ZetoEventObject {
 				transition.currentDelay += event.delta;
 				if (transition.currentDelay >= transition.delay) {
 					transition.currentDelay = transition.delay;
+					transition.started = true;
+					this.#callListener(transition.onStart, transition.target);
 				}
-			} else if (transition.time > 0 && transition.currentTime < transition.time) {
-				if (transition.currentTime <= 0) {
+			} else if (transition.time >= 0 && transition.currentTime <= transition.time) {
+				if (transition.currentTime <= 0 && !transition.started) {
+					transition.started = true;
 					this.#callListener(transition.onStart, transition.target);
 				}
 
 				transition.currentTime += event.delta;
 				if (transition.currentTime >= transition.time) {
 					transition.currentTime = transition.time;
+					transition.complete = true;
 				}
 
 				for (var key in transition.targetValues) {
@@ -60,6 +65,10 @@ class ZetoTransitionEngine extends ZetoEventObject {
 					transition.target[key] = transition.stringFlags[key] ? parseInt(value) : value;
 				}
 			} else {
+				transition.complete = true;
+			}
+
+			if (transition.complete) {
 				// Transition complete
 				for (var key in transition.targetValues) {
 					transition.target[key] = transition.targetValues[key];
