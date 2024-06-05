@@ -53,7 +53,11 @@ class ZetoTestingEngine {
 			let expectedCall = this.expectedCalls[index];
 			if (expectedCall.numCalls != expectedCall.times) {
 				this.errors.push('Call error: ' + expectedCall.message + ' was called ' + expectedCall.numCalls + '/' + expectedCall.times + ' times');
+			} else if (expectedCall.times == 0) {
+				this.expectedAsserts++;
+				this.assertCount++;
 			}
+
 			if (expectedCall.errors.length > 0) {
 				for (let errorIndex = 0; errorIndex < expectedCall.errors.length; errorIndex++) {
 					this.errors.push(expectedCall.errors[errorIndex]);
@@ -76,7 +80,7 @@ class ZetoTestingEngine {
 	assert(what, value, message) {
 		this.expectedAsserts++;
 		if (what != value) {
-			errors.push('Error asserting that ' + what + ' equals ' + value + ', checking ' + message);
+			this.errors.push('Error asserting that ' + what + ' equals ' + value + ', checking ' + message);
 		} else {
 			this.assertCount++;
 		}

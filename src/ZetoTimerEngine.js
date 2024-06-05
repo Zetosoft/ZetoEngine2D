@@ -12,7 +12,7 @@ class ZetoTimerEngine {
 			if (timer.remove) {
 				this.timers.splice(timerIndex, 1);
 				continue;
-			} else if (timer.currentDelay > 0) {
+			} else if (timer.currentDelay >= 0) {
 				if (timer.iterations != 0) {
 					timer.currentDelay -= event.delta;
 					if (timer.currentDelay <= 0) {
