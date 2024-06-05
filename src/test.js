@@ -11,7 +11,8 @@ async function runTests() {
 		if (typeof testModule.test === 'function') {
 			console.log(`Running tests from ${file}`);
 			try {
-				if (!testModule.test({ tester: testingEngine })) {
+				testModule.test({ tester: testingEngine });
+				if (testingEngine.failed) {
 					allTestsPassed = false;
 				}
 			} catch (error) {

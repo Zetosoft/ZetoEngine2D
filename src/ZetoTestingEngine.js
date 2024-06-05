@@ -15,6 +15,7 @@ class ZetoTestingEngine {
 	disabled = false;
 	filter = false;
 	testSetup = false;
+	failed = false;
 
 	constructor(options = {}) {
 		if (options.disabled) {
@@ -72,13 +73,10 @@ class ZetoTestingEngine {
 					console.error(colors.fgOrange + this.errors[index]);
 				}
 			}
-
-			return false;
+			this.failed = true;
 		}
 
 		console.log(colors.fgGreen + 'Test passed: ' + colors.reset + name + ' (' + this.assertCount + '/' + this.expectedAsserts + ' assertions)');
-
-		return true;
 	}
 
 	assert(what, value, message) {
