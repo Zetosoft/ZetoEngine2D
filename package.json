@@ -4,7 +4,7 @@
   "description": "A Javascript 2D canvas engine",
   "type": "module",
   "scripts": {
-    "build": "webpack --config webpack.config.js",
+    "build": "webpack --config webpack.config.cjs",
     "test": "node ./src/test.js"
   },
   "devDependencies": {
