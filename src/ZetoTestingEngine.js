@@ -9,7 +9,7 @@ class ZetoTestingEngine {
 	expectedAsserts;
 	assertCount;
 	errors;
-	callErrors;
+	expectedCalls;
 	callIndex;
 
 	disabled = false;
@@ -38,7 +38,7 @@ class ZetoTestingEngine {
 		}
 
 		this.errors = [];
-		this.callErrors = [];
+		this.expectedCalls = [];
 		this.callIndex = 0;
 		this.expectedAsserts = 0;
 		this.assertCount = 0;
@@ -49,9 +49,15 @@ class ZetoTestingEngine {
 			this.errors.push('Exception on test: ' + name + ' - ' + error);
 		}
 
-		for (let index = 0; index < this.callErrors.length; index++) {
-			if (this.callErrors[index]) {
-				this.errors.push('Expected function to be called: ' + this.callErrors[index][1]);
+		for (let index = 0; index < this.expectedCalls.length; index++) {
+			let expectedCall = this.expectedCalls[index];
+			if (expectedCall.numCalls != expectedCall.times) {
+				this.errors.push('Call error: ' + expectedCall.message + ' was called ' + expectedCall.numCalls + '/' + expectedCall.times + ' times');
+			}
+			if (expectedCall.errors.length > 0) {
+				for (let errorIndex = 0; errorIndex < expectedCall.errors.length; errorIndex++) {
+					this.errors.push(expectedCall.errors[errorIndex]);
+				}
 			}
 		}
 
@@ -76,25 +82,27 @@ class ZetoTestingEngine {
 		}
 	}
 
-	expectCall(message, expectedArgs) {
-		this.expectedAsserts++;
+	expectCall(message, times = 1, args) {
+		this.expectedAsserts += times;
 
 		let callIndex = this.callIndex;
-		this.callErrors[callIndex] = [expectedArgs, message];
+		this.expectedCalls[callIndex] = { times: times, message: message, args: args, numCalls: 0, errors: []};
 		this.callIndex++;
 
 		return (...args) => {
+			let expectedCall = this.expectedCalls[callIndex];
+			let numCall = expectedCall.numCalls;
+			let expectedArgs = expectedCall.times > 1 ? (expectedCall.args ? (expectedCall.args[numCall] ?? expectedCall.args) : null) : expectedCall.args;
+
 			if (expectedArgs) {
 				for (let index = 0; index < expectedArgs.length; index++) {
 					if (args[index] != expectedArgs[index]) {
-						this.callErrors[callIndex] = null;
-						this.errors.push('Error asserting that ' + args[index] + ' equals ' + expectedArgs[index] + ', checking ' + message);
-						return;
+						expectedCall.errors.push('Call error: ' + message + ' argument ' + index + ' expected ' + expectedArgs[index] + ' but got ' + args[index]);
 					}
 				}
 			}
 
-			this.callErrors[callIndex] = null;
+			expectedCall.numCalls++;
 			this.assertCount++;
 		};
 	}
