@@ -11,10 +11,10 @@ export const hover = 'hover';
 
 ///////////////////////////////////////////// Helpers
 export const isGroup = (o) => {
-    return o instanceof ZetoGroup;
+    return o?.constructor.name == 'ZetoGroup';
 };
 export const isTransition = (o) => {
-    return o instanceof ZetoTransition;
+    return o?.constructor.name == 'ZetoTransition';
 };
 export const isFunction = (f) => {
     return typeof f == 'function';
