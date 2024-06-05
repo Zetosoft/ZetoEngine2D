@@ -9,10 +9,10 @@ export function test({ tester }) {
 
 	tester.test('performWithDelay creates timer', (setup) => {
 		let timer1 = setup.timerEngine.performWithDelay(0, () => {});
-		tester.assertSame(setup.timerEngine.timers.length, 1, 'timers should have 1 item');
+		tester.assertSame(1, setup.timerEngine.timers.length, 'timers should have 1 item');
 
 		let timer2 = setup.timerEngine.performWithDelay(0, () => {});
-		tester.assertSame(setup.timerEngine.timers.length, 2, 'timers should have 2 items');
+		tester.assertSame(2, setup.timerEngine.timers.length, 'timers should have 2 items');
 	});
 
 	tester.test('performWithDelay with delay is executed after delta', (setup) => {
@@ -43,10 +43,10 @@ export function test({ tester }) {
 
 	tester.test('cancel removes timer', (setup) => {
 		let timer = setup.timerEngine.performWithDelay(1200, () => {});
-		tester.assertSame(setup.timerEngine.timers.length, 1, 'timers should have 1 items');
+		tester.assertSame(1, setup.timerEngine.timers.length, 'timers should have 1 items');
 		setup.timerEngine.cancel(timer);
 		setup.timerEngine.update({ delta: 0 });
-		tester.assertSame(setup.timerEngine.timers.length, 0, 'timers should have 0 items');
+		tester.assertSame(0, setup.timerEngine.timers.length, 'timers should have 0 items');
 	});
 
 	tester.test('cancel prevents timer listener execution', (setup) => {
