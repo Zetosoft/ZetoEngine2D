@@ -2,7 +2,7 @@ const colors = {
 	reset: '\x1b[0m',
 	fgRed: '\x1b[31m',
 	fgGreen: '\x1b[32m',
-	fgOrange: '\x1b[38;5;208m'
+	fgOrange: '\x1b[38;5;208m',
 };
 
 class ZetoTestingEngine {
@@ -72,9 +72,13 @@ class ZetoTestingEngine {
 					console.error(colors.fgOrange + this.errors[index]);
 				}
 			}
-		} else {
-			console.log(colors.fgGreen + 'Test passed: ' + colors.reset + name + ' (' + this.assertCount + '/' + this.expectedAsserts + ' assertions)');
+
+			return false;
 		}
+
+		console.log(colors.fgGreen + 'Test passed: ' + colors.reset + name + ' (' + this.assertCount + '/' + this.expectedAsserts + ' assertions)');
+
+		return true;
 	}
 
 	assert(what, value, message) {
@@ -90,13 +94,13 @@ class ZetoTestingEngine {
 		this.expectedAsserts += times;
 
 		let callIndex = this.callIndex;
-		this.expectedCalls[callIndex] = { times: times, message: message, args: args, numCalls: 0, errors: []};
+		this.expectedCalls[callIndex] = { times: times, message: message, args: args, numCalls: 0, errors: [] };
 		this.callIndex++;
 
 		return (...args) => {
 			let expectedCall = this.expectedCalls[callIndex];
 			let numCall = expectedCall.numCalls;
-			let expectedArgs = expectedCall.times > 1 ? (expectedCall.args ? (expectedCall.args[numCall] ?? expectedCall.args) : null) : expectedCall.args;
+			let expectedArgs = expectedCall.times > 1 ? (expectedCall.args ? expectedCall.args[numCall] ?? expectedCall.args : null) : expectedCall.args;
 
 			if (expectedArgs) {
 				for (let index = 0; index < expectedArgs.length; index++) {
