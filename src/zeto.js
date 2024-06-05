@@ -17,7 +17,6 @@ export { ZetoPhysicsBody } from './ZetoPhysicsBody.js';
 export { ZetoPhysicsEngine } from './ZetoPhysicsEngine.js';
 export { ZetoSprite } from './ZetoSprite.js';
 export { ZetoStrings } from './ZetoStrings.js';
-export { ZetoTestingEngine } from './ZetoTestingEngine.js';
 export { ZetoTextObject } from './ZetoTextObject.js';
 export { ZetoTimerEngine } from './ZetoTimerEngine.js';
 export { ZetoTransition } from './ZetoTransition.js';

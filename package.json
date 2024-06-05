@@ -1,8 +1,11 @@
 {
   "name": "ZetoEngine2D",
   "version": "1.0.0",
+  "description": "A Javascript 2D canvas engine",
+  "type": "module",
   "scripts": {
-    "build": "webpack --config webpack.config.js"
+    "build": "webpack --config webpack.config.js",
+    "test": "node ./src/test.js"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",
