@@ -8,6 +8,8 @@ args.forEach((arg) => {
 	options[key] = value;
 });
 
+globalThis.window = {};
+
 async function runTests() {
 	const testingEngine = new ZetoTestingEngine(options);
 	await testingEngine.load();

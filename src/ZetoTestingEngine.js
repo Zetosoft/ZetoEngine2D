@@ -121,7 +121,7 @@ class ZetoTester {
 		if (expected == actual) {
 			this.assertCount++;
 		} else {
-			this.errors.push('Error asserting that ' + expected + ' equals ' + actual + ', checking ' + message);
+			this.errors.push('Error asserting that ' + expected + ' is the same as ' + actual + ', checking ' + message);
 		}
 	}
 
@@ -130,7 +130,7 @@ class ZetoTester {
 		if (unexpected != actual) {
 			this.assertCount++;
 		} else {
-			this.errors.push('Error asserting that ' + unexpected + ' is not ' + actual + ', checking ' + message);
+			this.errors.push('Error asserting that ' + unexpected + ' is not the same as ' + actual + ', checking ' + message);
 		}
 	}
 
