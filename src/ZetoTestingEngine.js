@@ -1,3 +1,5 @@
+import { readdirSync } from 'fs';
+
 const colors = {
 	reset: '\x1b[0m',
 	fgRed: '\x1b[31m',
@@ -6,38 +8,55 @@ const colors = {
 };
 
 class ZetoTestingEngine {
+	filter;
+	testFiles;
+
+	constructor(options = {}) {
+		this.filter = options.filter ?? false;
+	}
+
+	async load(testDir = './tests') {
+		this.testFiles = readdirSync(testDir).filter((file) => file.endsWith('.js'));
+		if (this.filter) {
+			this.testFiles = this.testFiles.filter((file) => file.includes(this.filter));
+		}
+	}
+
+	async run() {
+		let allTestsPassed = true;
+		for (const file of this.testFiles) {
+			const tester = new ZetoTester();
+			const testModule = await import(`../tests/${file}`);
+			console.log(`Running tests from ${file}`);
+			try {
+				testModule.test({ tester: tester });
+				if (tester.failed) {
+					allTestsPassed = false;
+				}
+			} catch (error) {
+				console.error(`Test failed: ${file}`, error);
+				allTestsPassed = false;
+			}
+		}
+		return allTestsPassed;
+	}
+}
+
+class ZetoTester {
 	expectedAsserts;
 	assertCount;
 	errors;
 	expectedCalls;
 	callIndex;
 
-	disabled = false;
-	filter = false;
 	testSetup = false;
 	failed = false;
-
-	constructor(options = {}) {
-		if (options.disabled) {
-			this.disabled = true;
-			return;
-		}
-		this.filter = options.filter ?? false;
-	}
 
 	setup(setup) {
 		this.testSetup = setup;
 	}
 
 	test(name, testCase) {
-		if (this.disabled) {
-			return;
-		}
-
-		if (this.filter && name.indexOf(this.filter) == -1) {
-			return;
-		}
-
 		this.errors = [];
 		this.expectedCalls = [];
 		this.callIndex = 0;
@@ -79,12 +98,39 @@ class ZetoTestingEngine {
 		console.log(colors.fgGreen + 'Test passed: ' + colors.reset + name + ' (' + this.assertCount + '/' + this.expectedAsserts + ' assertions)');
 	}
 
-	assert(what, value, message) {
+	assertTrue(condition, message) {
 		this.expectedAsserts++;
-		if (what != value) {
-			this.errors.push('Error asserting that ' + what + ' equals ' + value + ', checking ' + message);
-		} else {
+		if (condition) {
 			this.assertCount++;
+		} else {
+			this.errors.push('Error asserting that ' + condition + ' is true, checking ' + message);
+		}
+	}
+
+	assertFalse(condition, message) {
+		this.expectedAsserts++;
+		if (!condition) {
+			this.assertCount++;
+		} else {
+			this.errors.push('Error asserting that ' + condition + ' is false, checking ' + message);
+		}
+	}
+
+	assertSame(expected, actual, message) {
+		this.expectedAsserts++;
+		if (expected == actual) {
+			this.assertCount++;
+		} else {
+			this.errors.push('Error asserting that ' + expected + ' equals ' + actual + ', checking ' + message);
+		}
+	}
+
+	assertNotSame(unexpected, actual, message) {
+		this.expectedAsserts++;
+		if (unexpected != actual) {
+			this.assertCount++;
+		} else {
+			this.errors.push('Error asserting that ' + unexpected + ' is not ' + actual + ', checking ' + message);
 		}
 	}
 
@@ -114,4 +160,4 @@ class ZetoTestingEngine {
 	}
 }
 
-export { ZetoTestingEngine };
+export { ZetoTestingEngine, ZetoTester };

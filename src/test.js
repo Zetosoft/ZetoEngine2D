@@ -1,31 +1,20 @@
-import { readdirSync } from 'fs';
 import { ZetoTestingEngine } from './ZetoTestingEngine.js';
 
-async function runTests() {
-	const testFiles = readdirSync('./tests').filter((file) => file.endsWith('.js'));
-	let allTestsPassed = true;
+const args = process.argv.slice(2);
+const options = {};
 
-	for (const file of testFiles) {
-		const testingEngine = new ZetoTestingEngine();
-		const testModule = await import(`../tests/${file}`);
-		if (typeof testModule.test === 'function') {
-			console.log(`Running tests from ${file}`);
-			try {
-				testModule.test({ tester: testingEngine });
-				if (testingEngine.failed) {
-					allTestsPassed = false;
-				}
-			} catch (error) {
-				console.error(`Test failed: ${file}`, error);
-				allTestsPassed = false;
-			}
-		} else {
-			console.warn(`No test function exported from ${file}`);
-		}
-	}
+args.forEach((arg) => {
+	const [key, value] = arg.split('=');
+	options[key] = value;
+});
+
+async function runTests() {
+	const testingEngine = new ZetoTestingEngine(options);
+	await testingEngine.load();
+	const allTestsPassed = await testingEngine.run();
 
 	if (!allTestsPassed) {
-		process.exit(1); // Exit with an error code if any tests failed
+		process.exit(1);
 	}
 }
 
