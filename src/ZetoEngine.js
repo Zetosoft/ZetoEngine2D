@@ -878,6 +878,7 @@ class ZetoEngine extends ZetoEventObject {
 					this.loadedImages[element.id] = element;
 					if (element.image.complete) {
 						// Is in cache
+						element.image.onload = null;
 						assetLoadedBind({ target: element.image, type: 'cache-z' }); // Avoid dupe warning
 					}
 				}
@@ -927,15 +928,15 @@ class ZetoEngine extends ZetoEventObject {
 
 	#checkLoaded(id, filename, type, alreadyLoadedListener) {
 		var alreadyLoaded = this.loadedIds[type][id];
-		if (alreadyLoaded) {
-			var loadedElement = type == 'image' ? this.loadedImages[id] : type == 'audio' ? this.loadedAudio[id] : this.loadedData[id];
-			if (loadedElement.filename == filename) {
-				alreadyLoadedListener({ target: loadedElement[type], type: 'cachez' });
-				return true;
-			}
+		if (!alreadyLoaded) {
 			return false;
 		}
-		return false;
+		var loadedElement = type == 'image' ? this.loadedImages[id] : type == 'audio' ? this.loadedAudio[id] : this.loadedData[id];
+		if (loadedElement.filename != filename) {
+			return false;
+		}
+		alreadyLoadedListener({ target: loadedElement[type], type: 'cachez' });
+		return true;
 	}
 
 	#generateCallback(after) {
