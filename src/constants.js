@@ -11,28 +11,28 @@ export const hover = 'hover';
 
 ///////////////////////////////////////////// Helpers
 export const isGroup = (o) => {
-    return o?.constructor.name == 'ZetoGroup';
+	return o?.children instanceof Array;
 };
 export const isTransition = (o) => {
-    return o?.constructor.name == 'ZetoTransition';
+	return o?.target && o?.easing;
 };
 export const isFunction = (f) => {
-    return typeof f == 'function';
+	return typeof f == 'function';
 };
 export const isArray = (o) => {
-    return a instanceof Array;
+	return a instanceof Array;
 };
 export const isNumber = (value) => {
-    return typeof value === 'number';
+	return typeof value === 'number';
 };
 export const isString = (value) => {
-    return typeof value === 'string';
+	return typeof value === 'string';
 };
 export const isObject = (value) => {
-    return typeof value === 'object';
+	return typeof value === 'object';
 };
 export const randomSideFloat = () => {
-    return mathRandom() * 2 - 1;
+	return mathRandom() * 2 - 1;
 };
 
 ///////////////////////////////////////////// Math functions
