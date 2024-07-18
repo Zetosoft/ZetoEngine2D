@@ -19,7 +19,7 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 		collision: [],
 	};
 
-	constructor(engine) {
+	constructor(engine, warn = true) {
 		super();
 
 		this.engine = engine;
@@ -35,7 +35,9 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 			mEvents.on(this.matterEngine, 'collisionStart', this.collisionBind);
 			mEvents.on(this.matterEngine, 'collisionEnd', this.collisionBind);
 		} catch (error) {
-			console.warn('Matter.js not found, physics engine is disabled');
+			if (warn) {
+				console.warn('Matter.js not found, physics engine is disabled');
+			}
 		}
 	}
 

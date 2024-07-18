@@ -1,4 +1,5 @@
 import { ZetoEventObject } from './ZetoEventObject.js';
+import { ZetoPath } from './ZetoPath.js';
 import { mathCos, mathSin, radianMultiplier, mBody } from './constants.js';
 
 class ZetoEngineObject extends ZetoEventObject {

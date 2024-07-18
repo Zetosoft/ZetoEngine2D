@@ -1,5 +1,3 @@
-import { ZetoTimerEngine } from '../src/ZetoTimerEngine.js';
-
 export function test({ tester }) {
 	tester.setup(() => {
 		return {

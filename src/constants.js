@@ -20,7 +20,7 @@ export const isFunction = (f) => {
 	return typeof f == 'function';
 };
 export const isArray = (o) => {
-	return a instanceof Array;
+	return o instanceof Array;
 };
 export const isNumber = (value) => {
 	return typeof value === 'number';
