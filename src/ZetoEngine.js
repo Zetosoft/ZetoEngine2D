@@ -605,10 +605,10 @@ class ZetoEngine extends ZetoEventObject {
 		}
 	}
 
-	drawUpdateChildren(context, parent, alpha = 1, isTouch, isHover) {
+	drawUpdateChildren(context, parent, alpha = 1, isParentTouch, isHover) {
 		if (parent.children && parent.children.length > 0) {
 			for (let childIndex = 0; childIndex < parent.children.length; childIndex++) {
-				this.drawUpdate(context, parent.children[childIndex], alpha, isTouch, isHover);
+				this.drawUpdate(context, parent.children[childIndex], alpha, isParentTouch, isHover);
 			}
 		}
 	}
@@ -619,7 +619,7 @@ class ZetoEngine extends ZetoEventObject {
 		return object.dispatchEvent(eventName, targetEvent);
 	}
 
-	drawUpdate(context, object, alpha = 1, isTouch = false, isHover = false) {
+	drawUpdate(context, object, alpha = 1, isParentTouch = false, isParentHover = false) {
 		context.save();
 		context.translate(object.x, object.y);
 		context.rotate(object.rotation * radianMultiplier);
@@ -637,9 +637,9 @@ class ZetoEngine extends ZetoEventObject {
 			// translate anchors
 			context.translate(object.internal.anchorOffsetX, object.internal.anchorOffsetY);
 			let objectContext = object.draw(context, this.frameEvent);
-			let isTouch = this.touchUpdate(objectContext, object, isTouch);
-			let isHover = this.hoverUpdate(objectContext, object, isHover);
-			this.drawUpdateChildren(objectContext, object, context.globalAlpha, isTouch, isHover);
+			let isThisTouch = this.touchUpdate(objectContext, object, isParentTouch);
+			let isThisHover = this.hoverUpdate(objectContext, object, isParentHover);
+			this.drawUpdateChildren(objectContext, object, context.globalAlpha, isThisTouch, isThisHover);
 		}
 
 		this.debugDraw(context, object);
@@ -702,10 +702,10 @@ class ZetoEngine extends ZetoEventObject {
 	newImageRect(id, x, y, width, height) {
 		let fill = this.loadedImages[id];
 		if (fill) {
-			let width = width ?? fill.image.width;
-			let height = height ?? fill.image.height;
+			let rectWidth = width ?? fill.image.width;
+			let rectHeight = height ?? fill.image.height;
 
-			let imageRect = this.newRect(x, y, width, height);
+			let imageRect = this.newRect(x, y, rectWidth, rectHeight);
 			imageRect.fill = { image: fill.image, sheet: { x: 0, y: 0, width: fill.image.width, height: fill.image.height } };
 
 			return this.rootGroup.insert(imageRect, true);
