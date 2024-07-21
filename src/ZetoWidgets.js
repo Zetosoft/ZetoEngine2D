@@ -1,5 +1,6 @@
 import { ZetoEventObject } from './ZetoEventObject.js';
 import { ZetoButton } from './ZetoButton.js';
+import { ZetoScrollView } from './ZetoScrollView.js';
 
 class ZetoWidgets extends ZetoEventObject {
 	widgets = {
@@ -32,6 +33,18 @@ class ZetoWidgets extends ZetoEventObject {
 		this.enabled[tag] = this.enabled[tag] ?? true;
 		button.setEnabled(this.enabled[tag]);
 		return this.engine.rootGroup.insert(button, true);
+	}
+
+	newScrollView(options) {
+		let scrollView = new ZetoScrollView(this.engine, options);
+		scrollView.addEventListener('finalize', this.#finalizeBind);
+
+		let tag = options.tag ?? 'default';
+		this.widgets[tag] = this.widgets[tag] ?? [];
+		this.widgets[tag].push(scrollView);
+		this.enabled[tag] = this.enabled[tag] ?? true;
+		scrollView.setEnabled(this.enabled[tag]);
+		return this.engine.rootGroup.insert(scrollView, true);
 	}
 
 	#finalizeWidget(event) {

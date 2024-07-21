@@ -105,15 +105,15 @@ class ZetoButton extends ZetoWidget {
 				break;
 		}
 
-		this.#buildShape(this.defaultGroup, defaultShape, fillColor.default, strokeColor.default, strokeWidth);
-		this.#buildShape(this.pressedGroup, pressedShape, fillColor.over, strokeColor.over, strokeWidth);
-		this.#buildShape(this.disabledGroup, disabledShape, fillColor.disabled, strokeColor.disabled, strokeWidth);
+		this.#buildShape(this.defaultGroup, defaultShape, fillColor.default, strokeColor?.default, strokeWidth);
+		this.#buildShape(this.pressedGroup, pressedShape, fillColor.over, strokeColor?.over, strokeWidth);
+		this.#buildShape(this.disabledGroup, disabledShape, fillColor.disabled, strokeColor?.disabled, strokeWidth);
 	}
 
 	#buildShape(group, shape, fillColor, strokeColor, strokeWidth) {
 		shape.fillColor = fillColor ?? this.fillColor;
-		shape.stroke = strokeColor ?? this.strokeColor;
-		shape.strokeWidth = strokeWidth ?? 2;
+		shape.stroke = strokeColor ?? null;
+		shape.strokeWidth = strokeWidth ?? 0;
 		group.insert(shape);
 	}
 

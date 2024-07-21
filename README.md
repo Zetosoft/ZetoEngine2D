@@ -425,6 +425,7 @@ coinSprite.play();
 The widgets class is responsible for creating and managing widgets. It can be accessed through the `engine.widgets` property. The following functions are available in the Widgets class. The widgets class is still in development and is subject to change. The syntax is similar to Solar2D, but with more customization options.
 
  - **engine.widgets.newButton(options)** Creates a new button widget
+ - **engine.widgets.newScrollView(options)** Creates a new scroll view container
  - **engine.widgets.setEnabled(enabled, tag)** Enables or disables all widgets. If an optional tag is provided, only widgets with the same tag will be enabled or disabled
 
 The widgets engine dispatches the following events:
@@ -466,6 +467,24 @@ And the following functions:
  - **setLabel(label)** Sets the label of the button
 
 Note that if `engine.widgets.setEnabled(false, tag)` is called, even before the button is created, all buttons with the same or default tag will be disabled. You can enable or disable all widgets with this function. This is useful for creating a pause menu or other UI elements that need to be disabled when the game is paused, this way, all buttons on the game will be disabled and the ones on the pause menu can be enabled.
+
+#### ScrollViews
+
+The following options are available when creating a scroll view with the `engine.widgets.newScrollView(options)` function:
+
+ - **options.x** The x position of the scroll view
+ - **options.y** The y position of the scroll view
+ - **options.width** The width of the scroll view
+ - **options.height** The height of the scroll view
+ - **options.horizontalScrollDisabled = false** If `true`, the scroll view will lock the x position and will not scroll horizontally
+ - **options.verticalScrollDisabled = false** If `true`, the scroll view will lock the y position and will not scroll vertically
+ - **options.scrollWidth = 0** The maximum x position of the scroll view, ignored if `lockX` is `true`
+ - **options.scrollHeight = 0** The maximum y position of the scroll view, ignored if `lockY` is `true`
+ - **options.scrollOffsetX = 0** Leftmost scroll limit of the scroll view, will work in conjunction with `scrollWidth`
+ - **options.scrollOffsetY = 0** Topmost scroll limit of the scroll view, will work in conjunction with `scrollHeight`
+ - **options.scrollX = 0** The x position of the scroll view
+ - **options.scrollY = 0** The y position of the scroll view
+ - **options.fillColor** The fill color of the scroll view background, defaults to transparent
 
 ### Timer Engine
 
@@ -701,7 +720,13 @@ Stopping the audio file will call the `onComplete` function if it is set.
 
 The audio engine will try to initialize the audio context on the first interaction with the canvas. Playing audio without user interaction is disabled on all browsers
 
- ### Notes
+### Building and contributing
+
+To build the engine, you will need Node.js and npm installed. You can install the dependencies by running `npm install`. You can build the engine by running `npm run build`. The engine will be built to the `dist` folder. You can run the tests by running `npm test`.
+
+When testing as a library inside another project, you can use `npm run watch C:\path\to\your\project\` to watch for changes in the engine src files, compile the library and copy the file `zeto.js` to your project any time changes are made. This will copy the files to the folder you specify, and let you test and improve the engine in your project. You are welcome to contribute to the engine, just submit an issue or a pull request.
+
+### Notes
 
  - The engine is still in development and is subject to change. The API is not final and may change in the future.
  - The engine is designed to be simple and easy to use. It is not meant to be a full-featured game engine like Solar2D or Phaser.
