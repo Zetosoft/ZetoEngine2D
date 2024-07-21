@@ -4,8 +4,10 @@
   "description": "A Javascript 2D canvas engine",
   "type": "module",
   "scripts": {
-    "build": "webpack --config webpack.config.cjs",
-    "test": "node ./src/test.js --"
+    "build": "node ./src/elite.js --build",
+    "copy": "node ./src/elite.js --copy",
+    "watch": "node ./src/elite.js --watch",
+    "test": "node ./src/elite.js --test --"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",
@@ -15,7 +17,8 @@
     "terser-webpack-plugin": "^5.3.10",
     "webpack": "^5.91.0",
     "webpack-cli": "^5.1.4",
-    "webpack-obfuscator": "^3.5.1"
+    "webpack-obfuscator": "^3.5.1",
+    "chokidar-cli": "^3.0.0"
   },
   "sideEffects": false
 }

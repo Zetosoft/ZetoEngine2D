@@ -1,4 +1,6 @@
 import { ZetoTestingEngine } from './ZetoTestingEngine.js';
+import { execSync } from 'child_process';
+import chokidar from 'chokidar';
 
 const args = process.argv.slice(2);
 const options = {};
@@ -67,8 +69,31 @@ async function runTests() {
 		process.exit(1);
 	}
 }
+function runCommand(command) {
+	execSync(command, { stdio: 'inherit' });
+}
 
-runTests().catch((error) => {
-	console.error('Error running tests:', error);
+async function run() {
+	console.log('Elite Running');
+	if (options.hasOwnProperty('--test')) {
+		await runTests();
+	} else if (options.hasOwnProperty('--build')) {
+		runCommand('webpack --config webpack.config.cjs');
+	} else if (options.hasOwnProperty('--copy')) {
+		runCommand(`cp ./dist/zeto.js ${args[1]}`);
+	} else if (options.hasOwnProperty('--watch')) {
+		const watcher = chokidar.watch('./src', {
+			ignored: /(^|[/\\])\../,
+			persistent: true,
+		});
+		watcher.on('change', (path) => {
+			runCommand('webpack --config webpack.config.cjs');
+			runCommand(`cp ./dist/zeto.js ${args[1]}`);
+		});
+	}
+}
+
+run().catch((error) => {
+	console.error('Elite Error:', error);
 	process.exit(1);
 });

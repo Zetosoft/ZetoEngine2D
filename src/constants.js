@@ -44,6 +44,7 @@ export const mathRound = Math.round;
 export const mathFloor = Math.floor;
 export const mathRandom = Math.random;
 export const mathMax = Math.max;
+export const mathMin = Math.min;
 export const mathSqrt = Math.sqrt;
 export const mathAbs = Math.abs;
 
