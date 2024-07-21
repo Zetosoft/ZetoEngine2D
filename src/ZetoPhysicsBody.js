@@ -80,6 +80,14 @@ class ZetoPhysicsBody extends ZetoEventObject {
 		return this.matterBody.isSensor;
 	}
 
+	set xScale(value) {
+		mBody.scale(this.matterBody, value, this.object.yScale);
+	}
+
+	set yScale(value) {
+		mBody.scale(this.matterBody, this.object.xScale, value);
+	}
+
 	createPath() {
 		var vertices = this.matterBody.vertices;
 		this.path = new ZetoPath();
