@@ -837,8 +837,8 @@ class ZetoEngine extends ZetoEventObject {
 
 			if (this.loadedIds[type][asset.id]) {
 				let existingAsset = this.getAsset(type, asset.id);
-				if (existingAsset != asset) {
-					console.warn('Duplicate ' + type + '.' + asset.id + ' with different contents');
+				if (existingAsset.src != asset.src) {
+					console.warn('Duplicate ' + type + '.' + asset.id + ' with different src');
 				}
 			}
 
