@@ -7,6 +7,7 @@ export { ZetoContainer } from './ZetoContainer.js';
 export { ZetoEasing } from './ZetoEasing.js';
 export { ZetoEmitter } from './ZetoEmitter.js';
 export { ZetoEngine } from './ZetoEngine.js';
+export { ZetoReactiveProperty } from './ZetoReactiveProperty.js';
 export { ZetoEngineObject } from './ZetoEngineObject.js';
 export { ZetoFill } from './ZetoFill.js';
 export { ZetoGroup } from './ZetoGroup.js';

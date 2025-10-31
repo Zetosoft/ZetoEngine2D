@@ -11,6 +11,7 @@ import { ZetoEngineObject } from './ZetoEngineObject.js';
 import { ZetoPath } from './ZetoPath.js';
 import { ZetoContainer } from './ZetoContainer.js';
 import { ZetoSprite } from './ZetoSprite.js';
+import { ZetoReactiveProperty } from './ZetoReactiveProperty.js';
 import { ZetoTextObject } from './ZetoTextObject.js';
 import { ZetoFill } from './ZetoFill.js';
 import { TOUCH_BEGAN, TOUCH_HOLD, began, hold, hover, ended, moved, radianMultiplier, pi, mathRound, mathFloor, isGroup, lockCanvasEvents } from './constants.js';
@@ -789,6 +790,10 @@ class ZetoEngine extends ZetoEventObject {
 	newSprite(imageSheet, sequenceData, x = 0, y = 0) {
 		let sprite = new ZetoSprite(this, imageSheet, sequenceData, x, y);
 		return this.rootGroup.insert(sprite, true);
+	}
+
+	react(propertyFunction) {
+		return new ZetoReactiveProperty(this, propertyFunction);
 	}
 
 	getImageFill(id, createPattern, patternRepeat = 'repeat') {

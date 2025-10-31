@@ -405,7 +405,7 @@ And the following functions:
  - **sprite.play()**
  - **sprite.stop()**
 
- #### Sprite Example
+#### Sprite Example
 
 ```javascript
 var sequenceData = [
@@ -485,6 +485,19 @@ The following options are available when creating a scroll view with the `engine
  - **options.scrollX = 0** The x position of the scroll view
  - **options.scrollY = 0** The y position of the scroll view
  - **options.fillColor** The fill color of the scroll view background, defaults to transparent
+
+### Reactive variables
+
+Use `engine.react(propertyFunction)` to create reactive variables. These variables can be assigned to object properties like `x`, `y`, `width`, `height`, `alpha`, etc. This can be helpful to create UI elements that adapt to the screen size or other properties.
+
+#### Reactive Example
+
+The following example creates a reactive rectangle that is always 100 pixels from the left edge of the screen, regardless of the screen size:
+
+```javascript
+let xPos = engine.react((engine) => -(engine.width / 2) + 100);
+let rect = engine.newRect(xPos, 0, 200, 200);
+```
 
 ### Timer Engine
 
@@ -729,7 +742,7 @@ When testing as a library inside another project, you can use `npm run watch C:\
 ### Notes
 
  - The engine is still in development and is subject to change. The API is not final and may change in the future.
- - The engine is designed to be simple and easy to use. It is not meant to be a full-featured game engine like Solar2D or Phaser.
+ - The main goal of ZetoEngine2D is to be beginner friendly and lightweight. 
  - The engine is designed to be used with the ZetoEngine2D module system. Modules are loaded and unloaded dynamically, allowing you to create complex games with multiple scenes and assets. This uses the Javascript module system, so you can use `import` and `export` to create modules, this might not work on older browsers.
  - Any feedback is appreciated. If you have any suggestions, find any bugs or want to make a donation, please let us know. You can contact us at [ZetoSoft.com](https://zetosoft.com).
  - All classes are exposed in the global scope, so you can access them directly or extend them. For example, you can create a new class that extends the `ZetoEngineObject` class and add your own properties and draw functions.
