@@ -23,9 +23,11 @@ globalThis.window = {
 	addEventListener: () => {},
 	requestAnimationFrame: () => {},
 };
-globalThis.navigator = {
-	maxTouchPoints: 1,
-};
+if (!globalThis.navigator) {
+	globalThis.navigator = {
+		maxTouchPoints: 1,
+	};
+}
 globalThis.document = {
 	addEventListener: () => {},
 	getElementById: (id) => {
