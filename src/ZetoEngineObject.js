@@ -108,7 +108,7 @@ class ZetoEngineObject extends ZetoEventObject {
 		var y = this.fill.sheet.y - (this.internal.anchorY - 0.5) * this.bounds.local.height;
 		this.path.rect(x, y, this.fill.sheet.width, this.fill.sheet.height);
 	}
-
+	
 	calculateSpritePath() {
 		this.path.rect(-this.fill.sheet.width * 0.5, -this.fill.sheet.height * 0.5, this.fill.sheet.width, this.fill.sheet.height);
 	}
@@ -147,6 +147,14 @@ class ZetoEngineObject extends ZetoEventObject {
 
 	set height(value) {
 		this.path.height = value;
+	}
+
+	get radius() {
+		return this.path.radius;
+	}
+
+	set radius(value) {
+		this.path.radius = value;
 	}
 
 	set anchorX(value) {
@@ -247,7 +255,6 @@ class ZetoEngineObject extends ZetoEventObject {
 		if (fill) {
 			if (fill.pattern) {
 				context.fillStyle = fill.pattern;
-				context.scale(path.internal.xScale, path.internal.yScale);
 				context.fill(path.path);
 			} else if (fill.image) {
 				var sheet = fill.sheet;
@@ -255,7 +262,6 @@ class ZetoEngineObject extends ZetoEventObject {
 			} else {
 				// Shapes
 				context.fillStyle = this.fillColor;
-				context.scale(path.internal.xScale, path.internal.yScale);
 				context.fill(path.path);
 			}
 		} else {
