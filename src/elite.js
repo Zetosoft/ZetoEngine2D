@@ -60,6 +60,12 @@ globalThis.Path2D = class Path2D {
 	constructor() {
 		this.addPath = () => {};
 	}
+	rect() {}
+	roundRect() {}
+	arc() {}
+	moveTo() {}
+	lineTo() {}
+	closePath() {}
 };
 
 async function runTests() {
