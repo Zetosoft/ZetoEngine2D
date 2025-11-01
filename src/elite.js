@@ -80,23 +80,29 @@ async function runTests() {
 function runCommand(command) {
 	execSync(command, { stdio: 'inherit' });
 }
-
+function compile() {
+	runCommand('webpack --config webpack.config.cjs');
+}
+function compileCopy(destination) {
+	compile();
+	runCommand(`cp ./dist/zeto.js ${destination}`);
+}
 async function run() {
 	console.log('Elite Running');
 	if (options.hasOwnProperty('--test')) {
 		await runTests();
 	} else if (options.hasOwnProperty('--build')) {
-		runCommand('webpack --config webpack.config.cjs');
+		compile();
 	} else if (options.hasOwnProperty('--copy')) {
-		runCommand(`cp ./dist/zeto.js ${args[1]}`);
+		compileCopy(args[1]);
 	} else if (options.hasOwnProperty('--watch')) {
+		compileCopy(args[1]);
 		const watcher = chokidar.watch('./src', {
 			ignored: /(^|[/\\])\../,
 			persistent: true,
 		});
 		watcher.on('change', (path) => {
-			runCommand('webpack --config webpack.config.cjs');
-			runCommand(`cp ./dist/zeto.js ${args[1]}`);
+			compileCopy(args[1]);
 		});
 	}
 }
