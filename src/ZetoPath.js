@@ -10,10 +10,15 @@ class ZetoPath {
 
 		xScale: 1,
 		yScale: 1,
+		radiusScale: 1,
 
 		setWidth: 0,
 		setHeight: 0,
 		setRadius: 0,
+
+		shapeType: null,
+		shapeLocked: false,
+		shapeHistory: [],
 	};
 
 	x = 0;
@@ -29,20 +34,24 @@ class ZetoPath {
 	set width(value) {
 		this.internal.setWidth = value;
 		this.internal.xScale = value / this.internal.width;
+
+		this.#recreatePath();
 		this.updateBoundsWidth();
 	}
 
 	set height(value) {
 		this.internal.setHeight = value;
 		this.internal.yScale = value / this.internal.height;
+
+		this.#recreatePath();
 		this.updateBoundsHeight();
 	}
 
 	set radius(value) {
 		this.internal.setRadius = value;
-		let scale = value / this.internal.radius;
-		this.internal.xScale = scale;
-		this.internal.yScale = scale;
+		this.internal.radiusScale = value / this.internal.radius;
+
+		this.#recreatePath();
 		this.updateBoundsRadius();
 	}
 
@@ -59,6 +68,13 @@ class ZetoPath {
 	}
 
 	rect(x, y, width, height) {
+		if (this.internal.shapeLocked) {
+			throw new Error('ZetoPath: Shape has already been set.');
+		}
+		this.internal.shapeType = 'rect';
+		this.internal.shapeLocked = true;
+		this.internal.shapeHistory.push({ type: 'rect', x: x, y: y, width: width, height: height });
+
 		this.x = x;
 		this.y = y;
 		this.internal.width = width;
@@ -74,6 +90,13 @@ class ZetoPath {
 	}
 
 	roundRect(x, y, width, height, radius) {
+		if (this.internal.shapeLocked) {
+			throw new Error('ZetoPath: Shape has already been set.');
+		}
+		this.internal.shapeType = 'roundRect';
+		this.internal.shapeLocked = true;
+		this.internal.shapeHistory.push({ type: 'roundRect', x: x, y: y, width: width, height: height, radius: radius });
+
 		this.x = x;
 		this.y = y;
 		this.internal.width = width;
@@ -91,6 +114,12 @@ class ZetoPath {
 	}
 
 	moveTo(x, y) {
+		if (this.internal.shapeLocked || (this.internal.shapeType && this.internal.shapeType != 'line')) {
+			throw new Error('ZetoPath: Shape has already been set.');
+		}
+		this.internal.shapeType = 'line';
+		this.internal.shapeHistory.push({ type: 'move', x: x, y: y });
+
 		this.x = x;
 		this.y = y;
 
@@ -100,6 +129,12 @@ class ZetoPath {
 	}
 
 	lineTo(x, y) {
+		if (this.internal.shapeLocked || (this.internal.shapeType && this.internal.shapeType != 'line')) {
+			throw new Error('ZetoPath: Shape has already been set.');
+		}
+		this.internal.shapeType = 'line';
+		this.internal.shapeHistory.push({ type: 'line', x: x, y: y });
+
 		this.x = x;
 		this.y = y;
 
@@ -109,13 +144,28 @@ class ZetoPath {
 	}
 
 	closePath() {
+		if (this.internal.shapeLocked || (this.internal.shapeType && this.internal.shapeType != 'line')) {
+			throw new Error('ZetoPath: Shape has already been set.');
+		}
+		this.internal.shapeType = 'line';
+		this.internal.shapeLocked = true;
+		this.internal.shapeHistory.push({ type: 'close' });
+
 		return this.path.closePath();
 	}
 
 	arc(x, y, radius, startAngle, endAngle, anticlockwise) {
+		if (this.internal.shapeLocked) {
+			throw new Error('ZetoPath: Shape has already been set.');
+		}
+		this.internal.shapeType = 'arc';
+		this.internal.shapeLocked = true;
+		this.internal.shapeHistory.push({ type: 'arc', x: x, y: y, radius: radius, startAngle: startAngle, endAngle: endAngle, anticlockwise: anticlockwise });
+
 		this.x = x;
 		this.y = y;
 		this.internal.radius = radius;
+		this.internal.setRadius = radius;
 
 		this.updateBoundsRadius();
 
@@ -159,6 +209,50 @@ class ZetoPath {
 		this.internal.height = this.maxY - this.minY;
 		this.internal.setWidth = this.internal.width;
 		this.internal.setHeight = this.internal.height;
+	}
+
+	#recreatePath() {
+		this.path = new Path2D();
+
+		let xScale = this.internal.xScale;
+		let yScale = this.internal.yScale;
+		let radiusScale = this.internal.radiusScale;
+
+		for (let index = 0; index < this.internal.shapeHistory.length; index++) {
+			let shapeInstruction = this.internal.shapeHistory[index];
+
+			let x = shapeInstruction.x * xScale;
+			let y = shapeInstruction.y * yScale;
+			let width = shapeInstruction.width * xScale;
+			let height = shapeInstruction.height * yScale;
+
+			let radius = shapeInstruction.radius * radiusScale;
+
+			switch (shapeInstruction.type) {
+				case 'rect':
+					this.path.rect(x, y, width, height);
+					break;
+				case 'roundRect':
+					this.path.roundRect(x, y, width, height, radius);
+					break;
+				case 'move':
+					this.path.moveTo(x, y);
+					break;
+				case 'line':
+					this.path.lineTo(x, y);
+					break;
+				case 'close':
+					this.path.closePath();
+					break;
+				case 'arc':
+					let startAngle = shapeInstruction.startAngle;
+					let endAngle = shapeInstruction.endAngle;
+					let anticlockwise = shapeInstruction.anticlockwise;
+
+					this.path.arc(x, y, radius, startAngle, endAngle, anticlockwise);
+					break;
+			}
+		}
 	}
 }
 
