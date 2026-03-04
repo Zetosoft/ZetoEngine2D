@@ -119,7 +119,7 @@ class ZetoButton extends ZetoWidget {
 
 	#build3FrameView(group, sheetImage, frameData) {
 		if (!frameData) {
-			return null;
+			return;
 		}
 		var rect = this.engine.newRect(0, 0, frameData.width, frameData.height);
 		rect.fill = { image: sheetImage, sheet: frameData };
@@ -128,7 +128,7 @@ class ZetoButton extends ZetoWidget {
 
 	#build9FrameView(group, sheetImage, desiredWidth, leftFrameData, middleFrameData, rightFrameData) {
 		if (!leftFrameData || !middleFrameData || !rightFrameData) {
-			return null;
+			return;
 		}
 		var minWidth = leftFrameData.width + rightFrameData.width;
 		var width = mathMax(desiredWidth ?? minWidth + middleFrameData.width, minWidth);
