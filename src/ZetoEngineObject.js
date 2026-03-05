@@ -37,6 +37,7 @@ class ZetoEngineObject extends ZetoEventObject {
 	fillColor;
 	alpha = 1;
 	isVisible = true;
+	isHitTestable = true;
 
 	parent;
 

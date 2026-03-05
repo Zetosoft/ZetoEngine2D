@@ -638,7 +638,7 @@ class ZetoEngine extends ZetoEventObject {
 			// translate anchors
 			context.translate(object.internal.anchorOffsetX, object.internal.anchorOffsetY);
 			let objectContext = object.draw(context, this.frameEvent);
-			let isThisTouch = this.touchUpdate(objectContext, object, isParentTouch);
+			let isThisTouch = object.isHitTestable && this.touchUpdate(objectContext, object, isParentTouch);
 			let isThisHover = this.hoverUpdate(objectContext, object, isParentHover);
 			this.drawUpdateChildren(objectContext, object, context.globalAlpha, isThisTouch, isThisHover);
 		}

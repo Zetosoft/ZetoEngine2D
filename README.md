@@ -320,7 +320,8 @@ Engine objects are the main objects that are used to create the game. They can b
 
  - **object.fillColor** The fill color of the object, can be in hex format or a color name as it would in CSS
  - **object.alpha = 1** The alpha value of the object, any value between 0 and 1
- - **object.isVisible = true** If the object is visible or not
+ - **object.isVisible = true** If the object is visible or not. Invisible objects will not be rendered and will not receive touch or mouse events, but they will still be able to receive `enterFrame`, `finalize` and other events, and will still be able to have transitions and physics applied to them.
+ - **object.isHitTestable = true** If the object can be hit by touch or mouse events, if false, the object will be ignored for hit testing, but will still be visible
  - **object.parent** The parent group of the object
  - **object.x = 0** The x position of the object, relative to its parent
  - **object.y = 0** The y position of the object, relative to its parent
