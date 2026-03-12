@@ -35,7 +35,15 @@ class ZetoAudioEngine {
 		this.engine.addEventListener('key', this.initAudioBind);
 	}
 
-	async play(id, volume = 1, time = 0, loop = false, onComplete = false) {
+	async play(id, options = {}) {
+		var volume = options.volume || 1;
+		var time = options.time || 0;
+		var loop = options.loop || false;
+		var pitch = options.pitch || 1;
+
+		var onStart = options.onStart;
+		var onComplete = options.onComplete;
+
 		var element = this.engine.loadedAudio[id];
 		if (element && this.audioContext) {
 			var audio = element.audio; // XMLHttpRequest
@@ -55,11 +63,16 @@ class ZetoAudioEngine {
 			}
 
 			volume = volume * this.volume;
-			var audioObject = new ZetoAudioObject(this, audio.zBuffer, volume, time, loop);
+			var audioObject = new ZetoAudioObject(this, audio.zBuffer, volume, time, loop, pitch);
 			audioObject.addEventListener('complete', onComplete);
 			audioObject.addEventListener('complete', this.#removeAudio);
 			this.audios.push(audioObject);
-			return audioObject;
+
+			if (onStart) {
+				onStart({
+					target: audioObject,
+				});
+			}
 		}
 	}
 

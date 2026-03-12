@@ -504,7 +504,7 @@ let rect = engine.newRect(xPos, 0, 200, 200);
 
 The Timer Engine class is responsible for creating and managing timers. It can be accessed through the `engine.timer` property. The following functions are available in the Timer Engine class. The Timer Engine is similar to the Solar2D timer engine.
 
- - **engine.timer.performWithDelay(delay, listener, iterations = 1)** Calls a function after a delay in milliseconds, returns a timer object. The listener function will receive the timer object as a `target` property
+ - **engine.timer.performWithDelay(delay, listener, iterations = 1)** Calls a function after a delay in milliseconds, returns a timer object. The listener function will receive an event object with the timer object as a `target` property
  - **engine.timer.cancel(timer)** Cancels a timer created with performWithDelay
 
 ### Transition Engine
@@ -714,12 +714,36 @@ console.log(helloString); // Hello, Zeto!
 
 ZetoEngine2D has a simple audio engine that can be used to play audio files. The audio engine uses the Web Audio API to play audio files. The following functions are available in the audio engine.
 
- - **async engine.audio.play(id, volume = 1, time = 0, loop = false, onComplete = false)** Plays an audio file, returns an audio object, further documentation below
+ - **async engine.audio.play(id, options = {})** Plays an audio file, returns a promise, further documentation below
  - **engine.audio.setVolume(volume)** Sets the global volume of the audio engine. Any value between 0 and 1 is accepted. Setting the volume to 0 will mute all playing audio and future audio. The default volume is 1
 
-The audio function `engine.audio.play(id, volume = 1, time = 0, loop = false, onComplete = false)` plays an audio file loaded with the `engine.loadAssets` function. The `id` parameter is the id of the audio file. The `volume` parameter is the volume of the audio file, any value between 0 and 1. The `time` parameter is the time in milliseconds to start the audio file. The `loop` parameter is a boolean that determines if the audio file should loop. The `onComplete` parameter is a function that is called when the audio file is complete.
+The audio function `engine.audio.play(id, options = {})` plays an audio file loaded with the `engine.loadAssets` function. The `id` parameter is the id of the audio file. The `options` parameter is an object that can contain the following properties:
 
-This function will return an audio object that can be used to control the audio file. The audio object has the following properties, which can even be modified using the `transitions` engine:
+ - **volume** The volume of the audio file, any value between 0 and 1
+ - **time** The time in milliseconds to start the audio file
+ - **loop** A boolean that determines if the audio file should loop
+ - **pitch** The pitch of the audio file
+ - **onStart** A function that is called when the audio file starts
+ - **onComplete** A function that is called when the audio file is complete
+
+Listener functions will receive an event object with the audio object as a `target` property. You can receive it as a parameter in the `onStart` and `onComplete` functions like this:
+
+```javascript
+engine.audio.play('audio-id', {
+	volume: 0.5,
+	onStart: function(event) {
+		let audioObject = event.target;
+		engine.transition.to(audioObject, { pitch: 1.5, time: 1000, easing: ZetoEasing.inOutSine });
+		console.log('Audio started');
+	},
+	onComplete: function(event) {
+		let audioObject = event.target;
+		console.log('Audio complete');
+	}
+});
+```
+
+This audio object can be used to control the audio file. The audio object has the following properties, which can even be modified using the `transitions` engine:
 
  - **audioObject.volume** The volume of the audio file 
  - **audioObject.pitch** The pitch of the audio file

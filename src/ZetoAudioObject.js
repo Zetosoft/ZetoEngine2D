@@ -12,15 +12,17 @@ class ZetoAudioObject extends ZetoEventObject {
 
 	listeners = ['complete'];
 
-	constructor(audioEngine, buffer, volume, time, loop) {
+	constructor(audioEngine, buffer, volume, time, loop, pitch) {
 		super();
 
 		this.audioEngine = audioEngine;
 		this.internal.volume = volume;
+		this.internal.pitch = pitch;
 
 		const bufferSource = audioEngine.audioContext.createBufferSource();
 		bufferSource.loop = loop;
 		bufferSource.buffer = buffer;
+		bufferSource.playbackRate.value = pitch;
 
 		const gainNode = audioEngine.audioContext.createGain();
 		gainNode.gain.value = volume * audioEngine.volume;
