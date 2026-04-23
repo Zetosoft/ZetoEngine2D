@@ -29,6 +29,10 @@ class ZetoSprite extends ZetoEngineObject {
 		if (this.sequenceMap[sequenceName]) {
 			this.sequence = this.sequenceMap[sequenceName];
 			this.frameTime = this.sequence.time / this.sequence.count;
+			if (this.sequence.sheet) {
+				this.imageSheet = this.sequence.sheet;
+				this.fill = this.sequence.sheet;
+			}
 		}
 	}
 
