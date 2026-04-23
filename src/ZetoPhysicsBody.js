@@ -135,7 +135,14 @@ class ZetoPhysicsBody extends ZetoEventObject {
 			this.matterBody = mBodies.circle(this.object.x, this.object.y, radius, bodyOptions, resolution);
 		} else {
 			this.shapeType = 'box';
-			this.matterBody = mBodies.rectangle(this.object.x, this.object.y, this.object.width, this.object.height, bodyOptions);
+
+			var boxOptions = options.box ?? {};
+			var boxX = boxOptions.x ? this.object.x + boxOptions.x : this.object.x;
+			var boxY = boxOptions.y ? this.object.y + boxOptions.y : this.object.y;
+			var boxWidth = boxOptions.width ? boxOptions.width : boxOptions.halfWidth ? boxOptions.halfWidth * 2 : this.object.width;
+			var boxHeight = boxOptions.height ? boxOptions.height : boxOptions.halfHeight ? boxOptions.halfHeight * 2 : this.object.height;
+
+			this.matterBody = mBodies.rectangle(boxX, boxY, boxWidth, boxHeight, bodyOptions);
 		}
 
 		var anchorOffsetX = this.object.internal.anchorOffsetX;
