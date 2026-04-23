@@ -200,8 +200,16 @@ The following functions create Engine Objects.
  - **engine.newRoundedRect(x, y, width, height, radius)** Creates a new rounded rect object
  - **engine.newRect(x, y, width, height)** Creates a new rect object
  - **engine.newPolygon(x, y, vertices)** Creates a new polygon object
- - **engine.newImageSheet(id, sheetData)** Creates a new image sheet object, to be used with sprites or as a fill
- - **engine.newSprite(imageSheet, sequenceData, x = 0, y = 0)** Creates a new sprite object
+ - **engine.newImageSheet(id, sheetData)** Creates a new image sheet object, to be used with sprites or as a fill. The `sheetData` parameter is an object that contains the following properties:
+	- **width** The width of each frame in the image sheet
+	- **height** The height of each frame in the image sheet
+	- **numFrames** The number of frames in the image sheet
+ - **engine.newSprite(imageSheet, sequenceData, x = 0, y = 0)** Creates a new sprite object. The `imageSheet` parameter is an image sheet object created with `engine.newImageSheet` function. The `sequenceData` parameter is an array of objects that define the animation sequences. Each object should have the following properties:
+	- **name** The name of the sequence
+	- **start** The starting frame of the sequence
+	- **count** The number of frames in the sequence
+	- **time** The time in milliseconds for the sequence to play
+	- **sheet** (Optional) An image sheet object to use for this sequence, if not provided, the `imageSheet` parameter will be used. This can be used to create a sprite with multiple images for different animation sequences.
  - **engine.remove(object)** Removes an object from the engine
 
 Other functions available in the Engine class are:
@@ -344,6 +352,7 @@ And the following functions are available in the Engine Object class.
  - **object.destroy()** Destroys the object, same effect as calling `engine.remove(object)`
  - **object.toFront()** Brings the object to the front of its parent group
  - **object.toBack()** Sends the object to the back of its parent group
+ - **object.scale(x, y)** Relatively scales the object by the given x and y values, if y is not provided, x will be used for both.
  - **object.localToContent(x, y)** Converts a local point to a content (global) point
  - **object.contentToLocal(x, y)** Converts a content (global) point to a local point
 
@@ -393,7 +402,9 @@ Text supports the newline character `\n` for multiline text. The following prope
 
 #### Sprites
 
-Sprites are used to animate images. They can be created using the `engine.newSprite` function. You need to create an ImageSheet object with the `engine.newImageSheet` function. The ImageSheet object is created with a sheetData object that contains the width, height, and number of frames in the image sheet. The sequenceData object contains the sequence name, start frame, frame count, and time in milliseconds for each sequence.
+Sprites are used to animate images. They can be created using the `engine.newSprite` function. You need to create an ImageSheet object with the `engine.newImageSheet` function. The ImageSheet object is created with a sheetData object that contains the frame width, frame height, and number of frames in the image sheet. The image itself can be any size, but the frames will be extracted based on the frame width and height. The frames are extracted from left to right, top to bottom. For example, if you have an image sheet with a width of 256, a height of 128, a frame width of 64, and a frame height of 64, you will have 4 frames in the first row and 4 frames in the second row, for a total of 8 frames.
+
+The sequenceData object contains the sequence name, start frame, frame count, and time in milliseconds for each sequence.
 
 The following properties and functions are available in the Sprite class.
 
