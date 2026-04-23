@@ -109,7 +109,7 @@ class ZetoEngineObject extends ZetoEventObject {
 		var y = this.fill.sheet.y - (this.internal.anchorY - 0.5) * this.bounds.local.height;
 		this.path.rect(x, y, this.fill.sheet.width, this.fill.sheet.height);
 	}
-	
+
 	calculateSpritePath() {
 		this.path.rect(-this.fill.sheet.width * 0.5, -this.fill.sheet.height * 0.5, this.fill.sheet.width, this.fill.sheet.height);
 	}
@@ -311,6 +311,11 @@ class ZetoEngineObject extends ZetoEventObject {
 			this.parent.children.splice(index, 1);
 			this.parent.children.unshift(this);
 		}
+	}
+
+	scale(x, y) {
+		this.xScale *= x;
+		this.yScale *= y ?? x;
 	}
 
 	updateBounds(world = false, skipWorld = false, worldRotation = 0) {
