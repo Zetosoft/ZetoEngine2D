@@ -646,7 +646,14 @@ The physics engine has the following functions available:
 	- **filter.mask** The mask of the object
 	- **filter.group** The group of the object
  - **options.radius = false** The radius of the object
- - **options.shape** A list of vertices to use as the shape of the object
+ - **options.shape** (Optional) A list of vertices to use as the shape of the object
+ - **options.box** An object containing the box properties (All optional, if not provided, the box will be created based on the object's width and height)
+	- **box.x** The x offset position of the box, relative to the object's position
+	- **box.y** The y offset position of the box, relative to the object's position
+	- **box.width** The width of the box
+	- **box.height** The height of the box
+	- **box.halfWidth** The half width of the box
+	- **box.halfHeight** The half height of the box
  - **options.resolution = 10** The number of sides to use when creating a circle
  - **options.isSensor = false** If the object is a sensor
 
