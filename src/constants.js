@@ -8,7 +8,9 @@ export const moved = 'moved';
 export const ended = 'ended';
 export const start = 'start';
 export const hover = 'hover';
-
+export const forward = 'forward';
+export const bounce = 'bounce';
+export const reverse = 'reverse';
 ///////////////////////////////////////////// Helpers
 export const isGroup = (o) => {
 	return o?.children instanceof Array;

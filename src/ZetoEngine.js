@@ -347,6 +347,10 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	keyDown(event) {
+		if (this.holdingKey[event.code ?? event.key]) {
+			return; // Ignore repeat events, key is already being held
+		}
+		
 		this.inputKey(event, began);
 		this.holdingKey[event.code ?? event.key] = {
 			event: event,
@@ -707,7 +711,7 @@ class ZetoEngine extends ZetoEventObject {
 			let rectHeight = height ?? fill.image.height;
 
 			let imageRect = this.newRect(x, y, rectWidth, rectHeight);
-			imageRect.fill = { image: fill.image, sheet: { x: 0, y: 0, width: fill.image.width, height: fill.image.height } };
+			imageRect.fill = { image: fill.image, currentFrameData: { x: 0, y: 0, width: fill.image.width, height: fill.image.height } };
 
 			return this.rootGroup.insert(imageRect, true);
 		} else {
@@ -783,7 +787,7 @@ class ZetoEngine extends ZetoEventObject {
 			image: imageFill.image,
 			frameData: frameData,
 			numFrames: numFrames,
-			sheet: frameData[0], // First frame
+			currentFrameData: frameData[0], // First frame
 		};
 	}
 

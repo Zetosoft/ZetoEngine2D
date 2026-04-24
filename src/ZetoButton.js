@@ -122,7 +122,7 @@ class ZetoButton extends ZetoWidget {
 			return;
 		}
 		var rect = this.engine.newRect(0, 0, frameData.width, frameData.height);
-		rect.fill = { image: sheetImage, sheet: frameData };
+		rect.fill = { image: sheetImage, currentFrameData: frameData };
 		group.insert(rect);
 	}
 
@@ -138,16 +138,16 @@ class ZetoButton extends ZetoWidget {
 
 		var leftRect = this.engine.newRect(-hMiddleWidth, 0, leftFrameData.width, height);
 		leftRect.anchorX = 1;
-		leftRect.fill = { image: sheetImage, sheet: leftFrameData };
+		leftRect.fill = { image: sheetImage, currentFrameData: leftFrameData };
 		group.insert(leftRect);
 
 		var middleRect = this.engine.newRect(0, 0, middleWidth + 2, height);
-		middleRect.fill = { image: sheetImage, sheet: middleFrameData };
+		middleRect.fill = { image: sheetImage, currentFrameData: middleFrameData };
 		group.insert(middleRect);
 
 		var rightRect = this.engine.newRect(hMiddleWidth, 0, rightFrameData.width, height);
 		rightRect.anchorX = 0;
-		rightRect.fill = { image: sheetImage, sheet: rightFrameData };
+		rightRect.fill = { image: sheetImage, currentFrameData: rightFrameData };
 		group.insert(rightRect);
 	}
 

@@ -62,6 +62,7 @@ class ZetoEngineObject extends ZetoEventObject {
 		yScaleInverse: 1,
 
 		fill: null,
+		currentFrameData: null,
 	};
 
 	engine;
@@ -89,9 +90,9 @@ class ZetoEngineObject extends ZetoEventObject {
 
 	calculatePath() {
 		if (this.fill.image) {
-			if (!this.fill.sheet) {
+			if (!this.internal.currentFrameData) {
 				// Image or ImageRect object
-				this.createFillSheet(this.fill.image);
+				this.createFillCurrentFrameData(this.fill.image);
 				this.calculateImagePath();
 			} else {
 				// Sprite object
@@ -99,19 +100,21 @@ class ZetoEngineObject extends ZetoEventObject {
 			}
 		} else {
 			// Path object
-			this.createFillSheet(this.fill);
+			this.createFillCurrentFrameData(this.fill);
 			this.path = this.fill;
 		}
 	}
 
 	calculateImagePath() {
-		var x = this.fill.sheet.x - (this.internal.anchorX - 0.5) * this.bounds.local.width;
-		var y = this.fill.sheet.y - (this.internal.anchorY - 0.5) * this.bounds.local.height;
-		this.path.rect(x, y, this.fill.sheet.width, this.fill.sheet.height);
+		var frameData = this.internal.currentFrameData;
+		var x = frameData.x - (this.internal.anchorX - 0.5) * this.bounds.local.width;
+		var y = frameData.y - (this.internal.anchorY - 0.5) * this.bounds.local.height;
+		this.path.rect(x, y, frameData.width, frameData.height);
 	}
 
 	calculateSpritePath() {
-		this.path.rect(-this.fill.sheet.width * 0.5, -this.fill.sheet.height * 0.5, this.fill.sheet.width, this.fill.sheet.height);
+		var frameData = this.internal.currentFrameData;
+		this.path.rect(-frameData.width * 0.5, -frameData.height * 0.5, frameData.width, frameData.height);
 	}
 
 	get x() {
@@ -135,11 +138,11 @@ class ZetoEngineObject extends ZetoEventObject {
 	}
 
 	get width() {
-		return this.path.width ?? (this.fill ? this.fill.sheet.width : 0);
+		return this.path.width ?? (this.internal.currentFrameData ? this.internal.currentFrameData.width : 0);
 	}
 
 	get height() {
-		return this.path.height ?? (this.fill ? this.fill.sheet.height : 0);
+		return this.path.height ?? (this.internal.currentFrameData ? this.internal.currentFrameData.height : 0);
 	}
 
 	set width(value) {
@@ -225,10 +228,13 @@ class ZetoEngineObject extends ZetoEventObject {
 
 	set fill(value) {
 		this.internal.fill = value;
+		if (value && value.currentFrameData) {
+			this.internal.currentFrameData = value.currentFrameData;
+		}
 		if (value && value.pattern) {
-			this.createFillSheet({ width: this.path.width, height: this.path.height });
-		} else if (value && value.image && !value.sheet) {
-			this.createFillSheet(value.image);
+			this.createFillCurrentFrameData({ width: this.path.width, height: this.path.height });
+		} else if (value && value.image && !value.currentFrameData) {
+			this.createFillCurrentFrameData(value.image);
 		}
 	}
 
@@ -240,8 +246,8 @@ class ZetoEngineObject extends ZetoEventObject {
 		this.fillColor = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
 	}
 
-	createFillSheet(properties) {
-		this.fill.sheet = {
+	createFillCurrentFrameData(properties) {
+		this.internal.currentFrameData = {
 			x: properties.x ?? 0,
 			y: properties.y ?? 0,
 			width: properties.width ?? 0,
@@ -258,8 +264,8 @@ class ZetoEngineObject extends ZetoEventObject {
 				context.fillStyle = fill.pattern;
 				context.fill(path.path);
 			} else if (fill.image) {
-				var sheet = fill.sheet;
-				context.drawImage(fill.image, sheet.x, sheet.y, sheet.width, sheet.height, path.left, path.top, path.width, path.height);
+				var frameData = this.internal.currentFrameData;
+				context.drawImage(fill.image, frameData.x, frameData.y, frameData.width, frameData.height, path.left, path.top, path.width, path.height);
 			} else {
 				// Shapes
 				context.fillStyle = this.fillColor;
@@ -335,11 +341,11 @@ class ZetoEngineObject extends ZetoEventObject {
 		bounds.y1 = 0;
 		bounds.y2 = 0;
 
-		var hasSheet = this.fill && this.fill.sheet;
+		var hasFrame = this.fill && this.internal.currentFrameData;
 		var hasPath = this.path;
 
-		var halfWidth = hasPath ? this.path.width * 0.5 : hasSheet ? this.fill.sheet.width * 0.5 : 0;
-		var halfHeight = hasPath ? this.path.height * 0.5 : hasSheet ? this.fill.sheet.height * 0.5 : 0;
+		var halfWidth = hasPath ? this.path.width * 0.5 : hasFrame ? this.internal.currentFrameData.width * 0.5 : 0;
+		var halfHeight = hasPath ? this.path.height * 0.5 : hasFrame ? this.internal.currentFrameData.height * 0.5 : 0;
 
 		var vertices = [
 			{ x: -halfWidth, y: -halfHeight },
