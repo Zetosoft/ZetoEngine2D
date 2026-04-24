@@ -11,6 +11,9 @@ export const hover = 'hover';
 export const forward = 'forward';
 export const bounce = 'bounce';
 export const reverse = 'reverse';
+export const sprite = 'sprite';
+export const loop = 'loop';
+export const next = 'next';
 ///////////////////////////////////////////// Helpers
 export const isGroup = (o) => {
 	return o?.children instanceof Array;

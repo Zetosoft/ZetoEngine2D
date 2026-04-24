@@ -1,5 +1,5 @@
 import { ZetoEngineObject } from './ZetoEngineObject.js';
-import { mathFloor, forward, bounce, reverse } from './constants.js';
+import { mathFloor, forward, bounce, reverse, sprite, began, ended, loop, next } from './constants.js';
 
 class ZetoSprite extends ZetoEngineObject {
 	listeners = {
@@ -84,7 +84,7 @@ class ZetoSprite extends ZetoEngineObject {
 				this.updateCurrentFrameData();
 			}
 
-			this.dispatchEvent('sprite', { target: this, phase: 'began' });
+			this.dispatchEvent(sprite, { target: this, phase: began });
 		}
 
 		this.playing = true;
@@ -123,7 +123,7 @@ class ZetoSprite extends ZetoEngineObject {
 
 		while (frameAdd-- > 0 && this.playing) {
 			var phase = this.stepFrame();
-			this.dispatchEvent('sprite', { target: this, phase: phase });
+			this.dispatchEvent(sprite, { target: this, phase: phase });
 		}
 
 		this.updateCurrentFrameData();
@@ -145,18 +145,16 @@ class ZetoSprite extends ZetoEngineObject {
 				if ((this.sequence.loopCount ?? 0) > 0 && this.loopCount <= 0) {
 					this.frame = rightLimit;
 					this.playing = false;
-					return 'ended';
+					return ended;
 				}
 
 				this.frame = start;
-				return 'loop';
+				return loop;
 			}
 
 			this.frame = nextFrame;
-			return 'next';
-		}
-
-		if (directionMode == reverse) {
+			return next;
+		} else if (directionMode == reverse) {
 			if (nextFrame < start) {
 				if ((this.sequence.loopCount ?? 0) > 0) {
 					this.loopCount--;
@@ -165,41 +163,41 @@ class ZetoSprite extends ZetoEngineObject {
 				if ((this.sequence.loopCount ?? 0) > 0 && this.loopCount <= 0) {
 					this.frame = start;
 					this.playing = false;
-					return 'ended';
+					return ended;
 				}
 
 				this.frame = rightLimit;
-				return 'loop';
+				return loop;
 			}
 
 			this.frame = nextFrame;
-			return 'next';
-		}
-
-		if (nextFrame > rightLimit) {
-			this.loopDirection = -1;
-			this.frame = rightLimit - 1;
-			return 'bounce';
-		}
-
-		if (nextFrame < start) {
-			if ((this.sequence.loopCount ?? 0) > 0) {
-				this.loopCount--;
+			return next;
+		} else if (directionMode == bounce) {
+			if (nextFrame > rightLimit) {
+				this.loopDirection = -1;
+				this.frame = rightLimit - 1;
+				return bounce;
 			}
 
-			if ((this.sequence.loopCount ?? 0) > 0 && this.loopCount <= 0) {
-				this.frame = start;
-				this.playing = false;
-				return 'ended';
+			if (nextFrame < start) {
+				if ((this.sequence.loopCount ?? 0) > 0) {
+					this.loopCount--;
+				}
+
+				if ((this.sequence.loopCount ?? 0) > 0 && this.loopCount <= 0) {
+					this.frame = start;
+					this.playing = false;
+					return ended;
+				}
+
+				this.loopDirection = 1;
+				this.frame = start + 1;
+				return loop;
 			}
 
-			this.loopDirection = 1;
-			this.frame = start + 1;
-			return 'loop';
+			this.frame = nextFrame;
+			return next;
 		}
-
-		this.frame = nextFrame;
-		return 'next';
 	}
 
 	updateCurrentFrameData() {
