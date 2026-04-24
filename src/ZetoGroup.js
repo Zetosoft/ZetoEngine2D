@@ -8,6 +8,10 @@ class ZetoGroup extends ZetoEngineObject {
 		super(engine, null, x, y);
 	}
 
+	get numChildren() {
+		return this.children.length;
+	}
+
 	get width() {
 		return this.bounds.local.width;
 	}

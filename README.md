@@ -1,6 +1,8 @@
 # ZetoEngine2D
 
-Javascript canvas engine. Inspired by Solar2D and Phaser. Uses same calls and 2D structure as Solar2D, while asset loading is similar to Phaser. Uses Canvas2D and Matter.js for physics. WebGL is not currently supported but is a planned upgrade.
+Javascript canvas engine. Inspired by Solar2D and Phaser. Uses same calls and 2D structure as Solar2D, while asset loading is similar to Phaser. Uses Canvas2D and Matter.js for physics. WebGL is not currently supported.
+
+Only dependency is Matter.js, which is optional. Pure JavaScript, no build step required. Just include zeto.js in your project and start creating games, or browse the source code to learn how a basic but complete game engine works.
 
 For a live demo, visit [ZetoEngine2D author page](https://basiliogerman.com). Works on desktop and mobile.
 
@@ -37,9 +39,6 @@ The following is an example of a game module. This module is located in `js/game
 One of the most important aspects is that you will receive the engine object as a parameter in the create & destroy functions. This object is used to used to create objects, load assets, play sounds and more. A complete list of the engine object properties and functions is available in the API Reference section. The following is an example of a game module:
 
 ```javascript
-var persistedString = localStorage.getItem('persisted');
-var persistedData = JSON.parse(persistedString);
-
 var images = [
 	// { id: 'ship', filename: './images/ships/spaceship.png' },
 ];
@@ -209,8 +208,8 @@ The following functions create Engine Objects.
     - **count** The number of frames in the sequence
     - **time** The time in milliseconds for the sequence to play
     - **sheet** (Optional) An image sheet object to use for this sequence, if not provided, the `imageSheet` parameter will be used. This can be used to create a sprite with multiple images for different animation sequences.
-    - **loopCount** (Optional) The number of times to loop the sequence, default is 0, which means infinite loop
-    - **loopDirection** (Optional) The direction to loop the sequence, can be `forward`, `bounce`, or `reverse`, default is `forward`
+    - **loopCount** (Optional) The number of times to loop the sequence, default is 0, which means infinite loop.
+    - **loopDirection** (Optional) The direction to loop the sequence, can be `forward`, `bounce`, or `reverse`, default is `forward`.
 - **engine.remove(object)** Removes an object from the engine
 
 Other functions available in the Engine class are:
@@ -378,11 +377,13 @@ Available listeners are:
 Groups are used to group objects together. They can be created using the `engine.newGroup` function. The following properties and functions are available in the Group class.
 
 - **group.children** An array of the children of the group
+- **group.numChildren** The readonly number of children in the group
 - **group.anchorChildren = false** If true, the children of the group will be anchored to the group, this makes the group have `width` and `height` properties
 
 And the following function:
 
 - **group.insert(object, skipUpdate = false)** Inserts an object into the group, if `skipUpdate` is true, the group will not update its bounds. Use for faster insertion of objects
+- **group.removeAll()** Removes all children from the group
 
 #### Text
 
