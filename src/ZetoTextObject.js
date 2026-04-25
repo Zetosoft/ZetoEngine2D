@@ -12,6 +12,7 @@ class ZetoTextObject extends ZetoEngineObject {
 		words: [],
 		lines: [],
 		lineHeight: 0,
+		lineOffsets: [],
 		offsetY: 0,
 		spacing: 0,
 	};
@@ -78,18 +79,19 @@ class ZetoTextObject extends ZetoEngineObject {
 		context.fillStyle = this.fillColor;
 		for (var lineIndex = 0; lineIndex < this.values.lines.length; lineIndex++) {
 			var line = this.values.lines[lineIndex];
-			context.fillText(line, 0, this.values.offsetY + (this.values.spacing + this.values.lineHeight) * lineIndex);
+			var offsetX = this.values.lineOffsets[lineIndex] ?? 0;
+			context.fillText(line, offsetX, this.values.offsetY + (this.values.spacing + this.values.lineHeight) * lineIndex);
 		}
 
 		return context;
 	}
 
 	calculateTextPath(newPath = false) {
-		// TODO: take into account align
 		var width = 0;
 		var maxLineHeight = 0;
 
 		this.values.lines = [];
+		this.values.lineOffsets = [];
 
 		if (this.values.width > 0) {
 			width = this.values.width;
@@ -122,6 +124,10 @@ class ZetoTextObject extends ZetoEngineObject {
 						var lineHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 						maxLineHeight = lineHeight > maxLineHeight ? lineHeight : maxLineHeight;
 						this.values.lines[currentLine] = line;
+
+						let diff = width - metrics.width;
+						let offsetX = diff * 0.5;
+						this.values.lineOffsets[currentLine] = this.align === 'left' ? -offsetX : this.align === 'right' ? offsetX : 0;
 					}
 				}
 				this.values.lineHeight = lineHeight > this.values.lineHeight ? lineHeight : this.values.lineHeight;
@@ -129,18 +135,30 @@ class ZetoTextObject extends ZetoEngineObject {
 				this.engine.context.font = this.values.contextFont;
 				var metrics = this.engine.context.measureText(this.values.lines[currentLine]);
 				maxLineHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+				let diff = width - metrics.width;
+				let offsetX = diff * 0.5;
+				this.values.lineOffsets[currentLine] = this.align === 'left' ? -offsetX : this.align === 'right' ? offsetX : 0;
 			}
 		} else {
 			this.values.lines = this.values.textString.split('\n');
+			let lineWidths = [];
 			for (var lineIndex = 0; lineIndex < this.values.lines.length; lineIndex++) {
 				var line = this.values.lines[lineIndex];
 				this.engine.context.font = this.values.contextFont;
 				var metrics = this.engine.context.measureText(line);
+				lineWidths[lineIndex] = metrics.width;
 				if (metrics.width > width) {
 					width = metrics.width;
 				}
 				var lineHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 				maxLineHeight = lineHeight > maxLineHeight ? lineHeight : maxLineHeight;
+			}
+
+			for (var lineIndex = 0; lineIndex < this.values.lines.length; lineIndex++) {
+				let diff = width - lineWidths[lineIndex];
+				let offsetX = diff * 0.5;
+				this.values.lineOffsets[lineIndex] = this.align === 'left' ? -offsetX : this.align === 'right' ? offsetX : 0;
 			}
 		}
 
