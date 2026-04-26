@@ -120,6 +120,7 @@ class ZetoPhysicsBody extends ZetoEventObject {
 			restitution: options.bounce ?? 0.1,
 			friction: options.friction ?? 0.1,
 			angle: this.object.rotation * radianMultiplier,
+			collisionFilter: collisionFilter,
 		};
 
 		if (shape) {
@@ -151,7 +152,6 @@ class ZetoPhysicsBody extends ZetoEventObject {
 		this.internal.offsetX += -anchorOffsetX;
 		this.internal.offsetY += -anchorOffsetY;
 
-		this.matterBody.collisionFilter = collisionFilter;
 		this.matterBody.zBody = this; // Custom property
 		mBody.scale(this.matterBody, this.object.xScale, this.object.yScale);
 	}
