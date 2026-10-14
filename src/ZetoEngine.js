@@ -124,31 +124,35 @@ class ZetoEngine extends ZetoEventObject {
 
 		document.addEventListener('touchstart', {}); // Enables touch events on iOS if embedded in iframe
 
-		window.addEventListener('visibilitychange', this.visibilityChange.bind(this));
-
-		window.addEventListener('touchstart', this.touchStart.bind(this), { passive: false });
-		window.addEventListener('touchmove', this.touchMove.bind(this), { passive: false });
-		window.addEventListener('touchend', this.touchEnd.bind(this), { passive: false });
-		window.addEventListener('touchcancel', this.touchCancel.bind(this), { passive: false });
-
-		window.addEventListener('mousedown', this.mouseDown.bind(this));
-		window.addEventListener('mousemove', this.mouseMove.bind(this));
-		window.addEventListener('mouseup', this.mouseUp.bind(this));
-
-		window.addEventListener('wheel', this.wheelEvent.bind(this));
-
-		window.addEventListener('keydown', this.keyDown.bind(this));
-		window.addEventListener('keyup', this.keyUp.bind(this));
+		this.windowBoundHandlers = {
+			visibilitychange: this.visibilityChange.bind(this),
+			touchstart: this.touchStart.bind(this),
+			touchmove: this.touchMove.bind(this),
+			touchend: this.touchEnd.bind(this),
+			touchcancel: this.touchCancel.bind(this),
+			mousedown: this.mouseDown.bind(this),
+			mousemove: this.mouseMove.bind(this),
+			mouseup: this.mouseUp.bind(this),
+			wheel: this.wheelEvent.bind(this),
+			keydown: this.keyDown.bind(this),
+			keyup: this.keyUp.bind(this),
+		};
+		for (var event in this.windowBoundHandlers) {
+			window.addEventListener(event, this.windowBoundHandlers[event], event.startsWith('touch') ? { passive: false } : undefined);
+		}
 
 		this.initCanvas(smoothing, canvas);
-
-		window.onunload = function (event) {
-			event.preventDefault();
-		};
 
 		if (moduleName) {
 			this.load(moduleName, moduleParams, loadedListener, progressListener);
 		}
+	}
+
+	destroy() {
+		for (var event in this.windowBoundHandlers) {
+			window.removeEventListener(event, this.windowBoundHandlers[event]);
+		}
+		cancelAnimationFrame(this.animationFrameId);
 	}
 
 	visibilityChange(event) {
@@ -350,7 +354,7 @@ class ZetoEngine extends ZetoEventObject {
 		if (this.holdingKey[event.code ?? event.key]) {
 			return; // Ignore repeat events, key is already being held
 		}
-		
+
 		this.inputKey(event, began);
 		this.holdingKey[event.code ?? event.key] = {
 			event: event,
@@ -386,7 +390,7 @@ class ZetoEngine extends ZetoEventObject {
 		document.body.style.overscrollBehavior = 'none';
 
 		window.addEventListener('resize', this.resizeCanvas.bind(this), false);
-		window.requestAnimationFrame(this.mainLoop.bind(this));
+		this.animationFrameId = window.requestAnimationFrame(this.mainLoop.bind(this));
 	}
 
 	mainLoop(timeStamp) {
@@ -423,7 +427,8 @@ class ZetoEngine extends ZetoEventObject {
 		if (this.showFPS) {
 			this.drawFPS(timeStamp);
 		}
-		window.requestAnimationFrame(this.mainLoop.bind(this));
+
+		this.animationFrameId = window.requestAnimationFrame(this.mainLoop.bind(this));
 	}
 
 	updateTouchPoints() {
