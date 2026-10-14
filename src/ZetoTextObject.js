@@ -119,6 +119,10 @@ class ZetoTextObject extends ZetoEngineObject {
 						// Word does not fit, start new line
 						currentLine++;
 						this.values.lines[currentLine] = word;
+
+						if (wordIndex == 1) {
+							maxLineHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+						}
 					} else {
 						// New word fits or is the first word in line
 						var lineHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
@@ -130,7 +134,7 @@ class ZetoTextObject extends ZetoEngineObject {
 						this.values.lineOffsets[currentLine] = this.align === 'left' ? -offsetX : this.align === 'right' ? offsetX : 0;
 					}
 				}
-				this.values.lineHeight = lineHeight > this.values.lineHeight ? lineHeight : this.values.lineHeight;
+				this.values.lineHeight = maxLineHeight > this.values.lineHeight ? maxLineHeight : this.values.lineHeight;
 			} else {
 				this.engine.context.font = this.values.contextFont;
 				var metrics = this.engine.context.measureText(this.values.lines[currentLine]);
