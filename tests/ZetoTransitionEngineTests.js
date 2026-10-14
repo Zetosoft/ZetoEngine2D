@@ -169,4 +169,37 @@ export function test({ tester }) {
 		setup.transitionEngine.update({ delta: 200 });
 		tester.assertSame('25', object.text, 'object text should be 25');
 	});
+
+	tester.test('transition cancel by tag', (setup) => {
+		let tagObject = { x: 0, y: 0 };
+		let tagTransition = setup.transitionEngine.to(tagObject, {
+			tag: 'move',
+			time: 200,
+			x: 100,
+			y: 200,
+			onStart: tester.expectCall('transition onStart'),
+			onComplete: tester.expectCall('transition onComplete', 0), // No calls to on Complete
+		});
+
+		let normalObject = { x: 0, y: 0 };
+		let normalTransition = setup.transitionEngine.to(normalObject, {
+			time: 200,
+			x: 50,
+			y: 100,
+			onStart: tester.expectCall('normal transition onStart'),
+			onComplete: tester.expectCall('normal transition onComplete'),
+		});
+
+		setup.transitionEngine.update({ delta: 100 });
+		setup.transitionEngine.cancel('move');
+		setup.transitionEngine.update({ delta: 200 });
+
+		tester.assertTrue(tagObject.x > 0, 'object x should be greater than 0 after cancel');
+		tester.assertTrue(tagObject.y > 0, 'object y should be greater than 0 after cancel');
+		tester.assertTrue(tagObject.x < 100, 'object x should be less than 100 after cancel');
+		tester.assertTrue(tagObject.y < 200, 'object y should be less than 200 after cancel');
+
+		tester.assertSame(50, normalObject.x, 'normal object x should be 50 after cancel');
+		tester.assertSame(100, normalObject.y, 'normal object y should be 100 after cancel');
+	});
 }

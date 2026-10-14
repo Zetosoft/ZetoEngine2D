@@ -1,10 +1,12 @@
 import { ZetoEventObject } from './ZetoEventObject.js';
 import { ZetoTransition } from './ZetoTransition.js';
-import { isFunction, isArray, isTransition } from './constants.js';
+import { isFunction, isArray, isTransition, isString } from './constants.js';
 
 class ZetoTransitionEngine extends ZetoEventObject {
 	engine;
 	transitions = [];
+	tagTransitions = [];
+	reservedWords = ['delay', 'time', 'tag', 'easing', 'onStart', 'onComplete'];
 
 	constructor(engine) {
 		super();
@@ -33,6 +35,10 @@ class ZetoTransitionEngine extends ZetoEventObject {
 			if (transition.remove) {
 				this.transitions.splice(transitionIndex, 1);
 				transition.target.transitions.splice(transition.target.transitions.indexOf(transition), 1);
+
+				if (transition.tag && this.tagTransitions[transition.tag]) {
+					this.tagTransitions[transition.tag].splice(this.tagTransitions[transition.tag].indexOf(transition), 1);
+				}
 
 				continue;
 			}
@@ -82,42 +88,54 @@ class ZetoTransitionEngine extends ZetoEventObject {
 	to(object, params = {}) {
 		var targetValues = {};
 		for (var key in params) {
-			if (key != 'delay' && key != 'time' && key != 'easing' && key != 'onStart' && key != 'onComplete') {
+			if (this.reservedWords.indexOf(key) === -1) {
 				targetValues[key] = params[key];
 			}
 		}
 
-		var transition = new ZetoTransition(object, params.delay, params.time, params.easing, params.onStart, params.onComplete, targetValues);
-		this.transitions.push(transition);
-		if (!object.transitions) {
-			object.transitions = [];
-		}
-		object.transitions.push(transition);
-		return transition;
+		var transition = new ZetoTransition(object, params.delay, params.time, params.tag, params.easing, params.onStart, params.onComplete, targetValues);
+		return this.#addTransition(object, transition);
 	}
 
 	from(object, params = {}) {
 		var fromValues = {};
 		var targetValues = {};
 		for (var key in params) {
-			if (key != 'delay' && key != 'time' && key != 'easing' && key != 'onStart' && key != 'onComplete') {
+			if (this.reservedWords.indexOf(key) === -1) {
 				fromValues[key] = params[key];
 				targetValues[key] = object[key];
 			}
 		}
 
-		var transition = new ZetoTransition(object, params.delay, params.time, params.easing, params.onStart, params.onComplete, targetValues, fromValues);
+		var transition = new ZetoTransition(object, params.delay, params.time, params.tag, params.easing, params.onStart, params.onComplete, targetValues, fromValues);
+		return this.#addTransition(object, transition);
+	}
+
+	#addTransition(object, transition) {
 		this.transitions.push(transition);
 		if (!object.transitions) {
 			object.transitions = [];
 		}
 		object.transitions.push(transition);
+		if (transition.tag) {
+			this.tagTransitions[transition.tag] = this.tagTransitions[transition.tag] || [];
+			this.tagTransitions[transition.tag].push(transition);
+		}
 		return transition;
 	}
 
 	cancel(object) {
 		if (isTransition(object)) {
 			object.remove = true;
+		} else if (isString(object)) {
+			var tag = object;
+			if (this.tagTransitions[tag]) {
+				for (var transitionIndex = this.tagTransitions[tag].length - 1; transitionIndex >= 0; transitionIndex--) {
+					var transition = this.tagTransitions[tag][transitionIndex];
+					transition.remove = true;
+					this.tagTransitions[tag].splice(transitionIndex, 1);
+				}
+			}
 		} else if (object && object.transitions) {
 			for (var transitionIndex = object.transitions.length - 1; transitionIndex >= 0; transitionIndex--) {
 				var transition = object.transitions[transitionIndex];

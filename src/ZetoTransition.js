@@ -17,6 +17,7 @@ class ZetoTransition {
 
 	delay;
 	time;
+	tag; 
 
 	currentDelay = 0;
 	currentTime = 0;
@@ -25,13 +26,14 @@ class ZetoTransition {
 	started = false;
 	remove = false;
 
-	constructor(target, delay = 0, time = 300, easing = null, onStart = null, onComplete = null, targetValues = null, fromValues = null) {
+	constructor(target, delay = 0, time = 300, tag = null, easing = null, onStart = null, onComplete = null, targetValues = null, fromValues = null) {
 		this.target = target;
 		this.easing = easing;
 		this.onComplete = onComplete;
 		this.onStart = onStart;
 		this.delay = delay;
 		this.time = time;
+		this.tag = tag;
 
 		if (!this.easing) {
 			this.easing = Easing.linear;
