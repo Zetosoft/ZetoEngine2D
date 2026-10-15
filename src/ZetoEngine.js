@@ -192,6 +192,9 @@ class ZetoEngine extends ZetoEventObject {
 			let touch = touches[touchIndex];
 
 			let touchPoint = this.touchPoints[touch.identifier ?? 0];
+			if (!touchPoint) {
+				continue;
+			}
 			let deltaX = touch.pageX - touchPoint.lastInputX;
 			let deltaY = touch.pageY - touchPoint.lastInputY;
 			touchPoint.lastInputX = touch.pageX;
@@ -239,6 +242,9 @@ class ZetoEngine extends ZetoEventObject {
 			let touchId = touch.identifier ?? 0;
 
 			let touchPoint = this.touchPoints[touchId];
+			if (!touchPoint) {
+				continue;
+			}
 			touchPoint.lastInputX = touch.pageX;
 			touchPoint.lastInputY = touch.pageY;
 
