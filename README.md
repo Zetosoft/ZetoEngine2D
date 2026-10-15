@@ -382,7 +382,7 @@ Groups are used to group objects together. They can be created using the `engine
 
 And the following function:
 
-- **group.insert(object, skipUpdate = false)** Inserts an object into the group, if `skipUpdate` is true, the group will not update its bounds. Use for faster insertion of objects
+- **group.insert(object, skipBoundsUpdate = false, skipParentBoundsUpdate = false)** Inserts an object into the group, if `skipBoundsUpdate` is true, the group will not update its bounds. If `skipParentBoundsUpdate` is true, the parent group will not update its bounds. Use for faster insertion of objects
 - **group.removeAll()** Removes all children from the group
 
 #### Text

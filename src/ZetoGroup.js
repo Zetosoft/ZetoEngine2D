@@ -20,12 +20,14 @@ class ZetoGroup extends ZetoEngineObject {
 		return this.bounds.local.height;
 	}
 
-	insert(childObject, skipBoundsUpdate = false) {
+	insert(childObject, skipBoundsUpdate = false, skipParentBoundsUpdate = false) {
 		if (childObject.parent && childObject.parent != this) {
 			var index = childObject.parent.children.indexOf(childObject);
 			childObject.parent.children.splice(index, 1);
 
-			childObject.parent.updateBounds();
+			if (!skipParentBoundsUpdate) {
+				childObject.parent.updateBounds();
+			}
 		}
 
 		if (childObject.parent != this) {
