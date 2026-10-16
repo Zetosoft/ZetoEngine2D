@@ -126,12 +126,18 @@ class ZetoTransitionEngine extends ZetoEventObject {
 
 	cancel(object) {
 		if (isTransition(object)) {
+			if (object.complete) {
+				return;
+			}
 			object.remove = true;
 		} else if (isString(object)) {
 			var tag = object;
 			if (this.tagTransitions[tag]) {
 				for (var transitionIndex = this.tagTransitions[tag].length - 1; transitionIndex >= 0; transitionIndex--) {
 					var transition = this.tagTransitions[tag][transitionIndex];
+					if (transition.complete) {
+						continue;
+					}
 					transition.remove = true;
 					this.tagTransitions[tag].splice(transitionIndex, 1);
 				}
@@ -139,6 +145,9 @@ class ZetoTransitionEngine extends ZetoEventObject {
 		} else if (object && object.transitions) {
 			for (var transitionIndex = object.transitions.length - 1; transitionIndex >= 0; transitionIndex--) {
 				var transition = object.transitions[transitionIndex];
+				if (transition.complete) {
+					continue;
+				}
 				transition.remove = true;
 			}
 		}

@@ -48,6 +48,18 @@ class ZetoButton extends ZetoWidget {
 		this.addEventListener('exitframe', this.#exitframe.bind(this));
 	}
 
+	set fillColor(colors) {
+		this.defaultGroup.fillColor = colors?.default ?? this.defaultGroup.fillColor;
+		this.pressedGroup.fillColor = colors?.pressed ?? this.pressedGroup.fillColor;
+		this.disabledGroup.fillColor = colors?.disabled ?? this.disabledGroup.fillColor;
+	}
+
+	set strokeColor(colors) {
+		this.defaultGroup.strokeColor = colors?.default ?? this.defaultGroup.strokeColor;
+		this.pressedGroup.strokeColor = colors?.pressed ?? this.pressedGroup.strokeColor;
+		this.disabledGroup.strokeColor = colors?.disabled ?? this.disabledGroup.strokeColor;
+	}
+
 	#buildButtonView(options) {
 		if (options.sheet) {
 			var sheet = options.sheet;

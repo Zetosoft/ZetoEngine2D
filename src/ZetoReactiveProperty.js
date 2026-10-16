@@ -11,6 +11,10 @@ class ZetoReactiveProperty {
 	valueOf() {
 		return this.propertyFunction(this.engine);
 	}
+
+	toString() {
+		return String(this.valueOf());
+	}
 }
 
 export { ZetoReactiveProperty };

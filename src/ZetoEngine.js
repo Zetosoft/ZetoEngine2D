@@ -136,9 +136,19 @@ class ZetoEngine extends ZetoEventObject {
 			wheel: this.wheelEvent.bind(this),
 			keydown: this.keyDown.bind(this),
 			keyup: this.keyUp.bind(this),
+			resize: this.resizeCanvas.bind(this),
 		};
+
+		const handlerParams = {
+			touchstart: { passive: false },
+			touchmove: { passive: false },
+			touchend: { passive: false },
+			touchcancel: { passive: false },
+			resize: false,
+		};
+
 		for (var event in this.windowBoundHandlers) {
-			window.addEventListener(event, this.windowBoundHandlers[event], event.startsWith('touch') ? { passive: false } : undefined);
+			window.addEventListener(event, this.windowBoundHandlers[event], handlerParams[event] ?? undefined);
 		}
 
 		this.initCanvas(smoothing, canvas);
@@ -382,6 +392,7 @@ class ZetoEngine extends ZetoEventObject {
 		this.context.webkitImageSmoothingEnabled = smoothing;
 		this.context.msImageSmoothingEnabled = smoothing;
 		this.context.imageSmoothingEnabled = smoothing;
+		this.context.imageSmoothingQuality = 'high';
 
 		canvas.style.outline = 'none';
 		canvas.style.webkitTapHighlightColor = 'rgba(255, 255, 255, 0)';
@@ -395,7 +406,6 @@ class ZetoEngine extends ZetoEventObject {
 		document.documentElement.style.overscrollBehavior = 'none';
 		document.body.style.overscrollBehavior = 'none';
 
-		window.addEventListener('resize', this.resizeCanvas.bind(this), false);
 		this.animationFrameId = window.requestAnimationFrame(this.mainLoop.bind(this));
 	}
 

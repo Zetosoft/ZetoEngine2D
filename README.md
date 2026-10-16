@@ -514,7 +514,7 @@ The following options are available when creating a scroll view with the `engine
 
 ### Reactive variables
 
-Use `engine.react(propertyFunction)` to create reactive variables. These variables can be assigned to object properties like `x`, `y`, `width`, `height`, `alpha`, etc. This can be helpful to create UI elements that adapt to the screen size or other properties.
+Use `engine.react(propertyFunction)` to create reactive variables. These variables can be assigned to object properties like `x`, `y`, `width`, `height`, `alpha`, etc. This can be helpful to create UI elements that adapt to the screen size or other properties. They even support string values.
 
 #### Reactive Example
 
