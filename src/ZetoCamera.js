@@ -36,7 +36,7 @@ class ZetoCamera extends ZetoGroup {
 	constructor(engine, x, y) {
 		super(engine, x, y);
 
-		this.view = engine.newGroup();
+		this.view = engine.newGroup(0, 0, false);
 		this.insert(this.view);
 	}
 

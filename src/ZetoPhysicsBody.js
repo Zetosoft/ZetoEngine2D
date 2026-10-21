@@ -1,6 +1,6 @@
 import { ZetoEventObject } from './ZetoEventObject.js';
 import { ZetoPath } from './ZetoPath.js';
-import { mBodies, mBody, mComposite, mVertices, radianMultiplier, degreeMultiplier } from './constants.js';
+import { mBodies, mBody, mVertices, radianMultiplier, degreeMultiplier } from './constants.js';
 
 class ZetoPhysicsBody extends ZetoEventObject {
 	bodyType = 'dynamic';
@@ -23,6 +23,7 @@ class ZetoPhysicsBody extends ZetoEventObject {
 	engine;
 
 	matterBody;
+	finalizeBind;
 
 	constructor(physicsEngine, object, bodyType, options = {}) {
 		super();
@@ -37,7 +38,8 @@ class ZetoPhysicsBody extends ZetoEventObject {
 
 		this.matterBody.isSensor = options.isSensor ?? false;
 
-		this.object.addEventListener('finalize', this.finalize.bind(this));
+		this.finalizeBind = this.finalize.bind(this);
+		this.object.addEventListener('finalize', this.finalizeBind);
 	}
 
 	get fixedRotation() {
@@ -195,7 +197,7 @@ class ZetoPhysicsBody extends ZetoEventObject {
 	}
 
 	finalize(event) {
-		mComposite.remove(this.physics.matterWorld, this.matterBody);
+		this.physics.removeBodyByBody(this);
 	}
 }
 

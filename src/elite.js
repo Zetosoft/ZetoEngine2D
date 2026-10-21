@@ -52,8 +52,9 @@ globalThis.DOMMatrix = class DOMMatrix {
 		this.d = 1;
 		this.e = 0;
 		this.f = 0;
-		this.translateSelf = () => {};
-		this.preMultiplySelf = () => {};
+		this.translateSelf = () => this;
+		this.preMultiplySelf = () => this;
+		this.inverse = () => this;
 	}
 };
 globalThis.Path2D = class Path2D {

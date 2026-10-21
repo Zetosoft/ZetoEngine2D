@@ -31,10 +31,17 @@ class ZetoParticle {
 	particleSize = 0;
 	particleSizeDelta = 0;
 	timeToLive = 0;
+	baseWidth = 0;
+	baseHeight = 0;
+	temp = { x: 0, y: 0 };
+	tempRadial = { x: 0, y: 0 };
+	tempTangential = { x: 0, y: 0 };
 
 	constructor(emitter) {
 		var engine = emitter.engine;
-		this.image = engine.newImage(emitter.texture.id, 0, 0); // TODO: extend EngineObject and implement own draw() function
+		this.image = engine.newImage(emitter.texture.id, 0, 0, false); // TODO: extend EngineObject and implement own draw() function
+		this.baseWidth = this.image.width;
+		this.baseHeight = this.image.height;
 		this.image.isVisible = false;
 
 		var parent = emitter;

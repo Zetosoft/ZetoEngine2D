@@ -1,4 +1,6 @@
 import { ZetoEventObject } from './ZetoEventObject.js';
+import { ZetoParticle } from './ZetoParticle.js';
+import { ZetoEmitter } from './ZetoEmitter.js';
 import { mathAbs, mathCos, mathSin, randomSideFloat, radianMultiplier } from './constants.js';
 
 class ZetoParticleEngine extends ZetoEventObject {
@@ -15,21 +17,18 @@ class ZetoParticleEngine extends ZetoEventObject {
 		this.engine = engine;
 	}
 
-	normalize(point, scale) {
+	normalize(point, scale, target) {
 		// var magnitude = mathSqrt((point.x * point.x) + (point.y * point.y));
 		// TODO check if this is faster than mathSqrt (It should be) visually i can't see a difference
 		var magnitude = mathAbs(point.x) + mathAbs(point.y);
 		if (magnitude != 0) {
-			return {
-				x: (scale * point.x) / magnitude,
-				y: (scale * point.y) / magnitude,
-			};
+			target.x = (scale * point.x) / magnitude;
+			target.y = (scale * point.y) / magnitude;
 		} else {
-			return {
-				x: 0,
-				y: 0,
-			};
+			target.x = 0;
+			target.y = 0;
 		}
+		return target;
 	}
 
 	update(event) {
@@ -135,8 +134,10 @@ class ZetoParticleEngine extends ZetoEventObject {
 		particle.image.x = particle.position.x;
 		particle.image.y = particle.position.y;
 		particle.image.rotation = particle.rotation;
-		particle.image.width = particle.particleSize;
-		particle.image.height = particle.particleSize;
+		let xScale = particle.baseWidth > 0 ? particle.particleSize / particle.baseWidth : 0;
+		let yScale = particle.baseHeight > 0 ? particle.particleSize / particle.baseHeight : 0;
+		particle.image.xScale = xScale > 0 ? xScale : 0.000001;
+		particle.image.yScale = yScale > 0 ? yScale : 0.000001;
 		particle.image.alpha = particle.alpha;
 		particle.image.isVisible = true;
 	}
@@ -169,11 +170,10 @@ class ZetoParticleEngine extends ZetoEventObject {
 			particle.position.x = -mathCos(particle.angle) * particle.radius;
 			particle.position.y = -mathSin(particle.angle) * particle.radius;
 		} else {
-			var radial = this.normalize(particle.position, 1);
-			var tangential = {
-				x: radial.x,
-				y: radial.y,
-			};
+			var radial = this.normalize(particle.position, 1, particle.tempRadial);
+			var tangential = particle.tempTangential;
+			tangential.x = radial.x;
+			tangential.y = radial.y;
 
 			radial.x = radial.x * particle.radialAcceleration;
 			radial.y = radial.y * particle.radialAcceleration;
@@ -184,10 +184,9 @@ class ZetoParticleEngine extends ZetoEventObject {
 			tangential.x = tangential.x * particle.tangentialAcceleration;
 			tangential.y = tangential.y * particle.tangentialAcceleration;
 
-			var tmp = {
-				x: radial.x + tangential.x + emitter.gravityx,
-				y: radial.y + tangential.y + emitter.gravityy,
-			};
+			var tmp = particle.temp;
+			tmp.x = radial.x + tangential.x + emitter.gravityx;
+			tmp.y = radial.y + tangential.y + emitter.gravityy;
 
 			tmp.x = tmp.x * delta;
 			tmp.y = tmp.y * delta;
@@ -212,8 +211,10 @@ class ZetoParticleEngine extends ZetoEventObject {
 		particle.image.x = particle.position.x;
 		particle.image.y = particle.position.y;
 		particle.image.rotation = particle.rotation;
-		particle.image.width = particle.particleSize;
-		particle.image.height = particle.particleSize;
+		let xScale = particle.baseWidth > 0 ? particle.particleSize / particle.baseWidth : 0;
+		let yScale = particle.baseHeight > 0 ? particle.particleSize / particle.baseHeight : 0;
+		particle.image.xScale = xScale > 0 ? xScale : 0.000001;
+		particle.image.yScale = yScale > 0 ? yScale : 0.000001;
 		particle.image.alpha = particle.alpha;
 	}
 

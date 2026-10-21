@@ -1,10 +1,9 @@
 import { ZetoGroup } from './ZetoGroup.js';
-import { ZetoParticleEngine } from './ZetoParticleEngine.js';
 
 class ZetoEmitter extends ZetoGroup {
 	particleEngine;
 
-	emitterType = ZetoParticleEngine.particleTypeGravity;
+	emitterType = 0;
 
 	texture;
 

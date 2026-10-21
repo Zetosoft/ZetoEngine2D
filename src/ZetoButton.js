@@ -21,16 +21,16 @@ class ZetoButton extends ZetoWidget {
 
 		this.anchorChildren = true;
 
-		this.defaultGroup = engine.newGroup();
+		this.defaultGroup = engine.newGroup(0, 0, false);
 		this.defaultGroup.anchorChildren = true;
 		this.insert(this.defaultGroup);
 
-		this.pressedGroup = engine.newGroup();
+		this.pressedGroup = engine.newGroup(0, 0, false);
 		this.pressedGroup.anchorChildren = true;
 		this.pressedGroup.isVisible = false;
 		this.insert(this.pressedGroup);
 
-		this.disabledGroup = engine.newGroup();
+		this.disabledGroup = engine.newGroup(0, 0, false);
 		this.disabledGroup.anchorChildren = true;
 		this.disabledGroup.isVisible = false;
 		this.insert(this.disabledGroup);
@@ -101,19 +101,19 @@ class ZetoButton extends ZetoWidget {
 
 		switch (shape) {
 			case 'roundedRect':
-				defaultShape = this.engine.newRoundedRect(0, 0, width, height, radius);
-				pressedShape = this.engine.newRoundedRect(0, 0, width, height, radius);
-				disabledShape = this.engine.newRoundedRect(0, 0, width, height, radius);
+				defaultShape = this.engine.newRoundedRect(0, 0, width, height, radius, false);
+				pressedShape = this.engine.newRoundedRect(0, 0, width, height, radius, false);
+				disabledShape = this.engine.newRoundedRect(0, 0, width, height, radius, false);
 				break;
 			case 'circle':
-				defaultShape = this.engine.newCircle(0, 0, radius);
-				pressedShape = this.engine.newCircle(0, 0, radius);
-				disabledShape = this.engine.newCircle(0, 0, radius);
+				defaultShape = this.engine.newCircle(0, 0, radius, false);
+				pressedShape = this.engine.newCircle(0, 0, radius, false);
+				disabledShape = this.engine.newCircle(0, 0, radius, false);
 				break;
 			default:
-				defaultShape = this.engine.newRect(0, 0, width, height);
-				pressedShape = this.engine.newRect(0, 0, width, height);
-				disabledShape = this.engine.newRect(0, 0, width, height);
+				defaultShape = this.engine.newRect(0, 0, width, height, false);
+				pressedShape = this.engine.newRect(0, 0, width, height, false);
+				disabledShape = this.engine.newRect(0, 0, width, height, false);
 				break;
 		}
 
@@ -133,7 +133,7 @@ class ZetoButton extends ZetoWidget {
 		if (!frameData) {
 			return;
 		}
-		var rect = this.engine.newRect(0, 0, frameData.width, frameData.height);
+		var rect = this.engine.newRect(0, 0, frameData.width, frameData.height, false);
 		rect.fill = { image: sheetImage, currentFrameData: frameData };
 		group.insert(rect);
 	}
@@ -148,16 +148,16 @@ class ZetoButton extends ZetoWidget {
 		var height = leftFrameData.height;
 		var hMiddleWidth = mathFloor(middleWidth * 0.5);
 
-		var leftRect = this.engine.newRect(-hMiddleWidth, 0, leftFrameData.width, height);
+		var leftRect = this.engine.newRect(-hMiddleWidth, 0, leftFrameData.width, height, false);
 		leftRect.anchorX = 1;
 		leftRect.fill = { image: sheetImage, currentFrameData: leftFrameData };
 		group.insert(leftRect);
 
-		var middleRect = this.engine.newRect(0, 0, middleWidth + 2, height);
+		var middleRect = this.engine.newRect(0, 0, middleWidth + 2, height, false);
 		middleRect.fill = { image: sheetImage, currentFrameData: middleFrameData };
 		group.insert(middleRect);
 
-		var rightRect = this.engine.newRect(hMiddleWidth, 0, rightFrameData.width, height);
+		var rightRect = this.engine.newRect(hMiddleWidth, 0, rightFrameData.width, height, false);
 		rightRect.anchorX = 0;
 		rightRect.fill = { image: sheetImage, currentFrameData: rightFrameData };
 		group.insert(rightRect);

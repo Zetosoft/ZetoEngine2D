@@ -146,6 +146,50 @@ export function destroy(event) {
 
 Don't forget to make your games responsive! The engine will dispatch a `resize` event when the window is resized. You can listen to this event and adjust your game accordingly.
 
+## Benchmarking
+
+This repository includes a deterministic benchmark harness focused on progressive dynamic creation workloads.
+
+- Start the benchmark server:
+
+```bash
+npm run benchmark
+```
+
+- Open `http://localhost:8080/benchmark/index.html`.
+- The benchmark runs three progressive stress scenes:
+  - sprite workload (dynamic creation from 1k to 10k)
+  - particle workload (progressive max-particle growth from 1k to 10k)
+  - physics workload (dynamic body creation from 1k to 10k)
+- Default checkpoints are deterministic (`seed=1337`, `startCount=1000`, `endCount=10000`, `step=1000`) and are measured at the same progression points every run.
+- Any scenario includes an automatic early-stop guard when `p95` exceeds a configurable threshold (`stopP95Ms`, default `20`; legacy alias `physicsStopP95Ms` still works).
+- Benchmark UI includes a **Copy output** button for quickly copying overlay and JSON results.
+
+Optional query parameters:
+
+- `seed`
+- `startCount`
+- `endCount`
+- `step`
+- `spawnPerFrame`
+- `warmupFrames`
+- `measureFrames`
+- `stopP95Ms` (set `0` to disable early stop; `physicsStopP95Ms` remains accepted as a legacy alias)
+
+Example:
+
+`http://localhost:8080/benchmark/index.html?seed=1337&spawnPerFrame=120&step=1000&stopP95Ms=20`
+
+Results are printed in the page overlay and exposed on `window.__zetoBenchmarkResults` as structured JSON.
+
+To compare two benchmark JSON exports (for example before/after an optimization), run:
+
+```bash
+npm run benchmark:compare -- ./before.json ./after.json
+```
+
+The script prints checkpoint-aligned CSV rows for average/p95/p99 frame-time deltas.
+
 ## API Reference
 
 The ZetoEngine2D API is similar to Solar2D. The following is a rough outline of the API. The API is still in development and is subject to change. For more information, see the source code.
@@ -161,6 +205,7 @@ The ZetoEngine class is the main class of the ZetoEngine2D. It is responsible fo
 - **engine.mouseX = 0** Read only value of the mouse x position
 - **engine.mouseY = 0** Read only value of the mouse y position
 - **engine.tapTime = 200** Time in milliseconds to consider a touch event as a tap
+- **engine.moduleRoot** The root path for loading modules, default is './'
 - **engine.rootGroup** The root group of the engine, all objects are inserted into this group by default
 - **engine.fillColor = 'white'** Default fill color for objects
 - **engine.clearColor = 'black'** Default clear color for the canvas
@@ -232,7 +277,7 @@ Other functions available in the Engine class are:
 - **engine.setCanvasLock(value)** Locks all scrolling when the canvas is touched. Useful for games that need a steady canvas
 - **engine.getAsset(type, id)** Returns a raw asset object, used to get the raw image, audio or data object. The type can be `image`, `audio`, or `data`
 
-When using `load` and `unload`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `load` will call the exported `create` function in the module, and `unload` will call the exported `destroy` function in the module.
+When using `load` and `unload`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js` (default moduleRoot is `./`). The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `load` will call the exported `create` function in the module, and `unload` will call the exported `destroy` function in the module.
 
 The `loadedListener` and the `progressListener` function will be called when you call the `complete` and `progress` functions in the module. `unloadedListener` will be called when you call the `complete` function as well, but inside the `destroy` function. on `create`, The `event.complete()` and `event.progress()` functions accept a function as a parameter, and this function will be called after the external `loadedListener`, `progressListener` or `unloadedListener` functions are called. For example:
 

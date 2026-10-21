@@ -1,1 +1,4 @@
 node_modules/
+dist/matter.js
+benchmark/zeto.js
+benchmark/matter.js
