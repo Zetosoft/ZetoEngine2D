@@ -540,11 +540,12 @@ class ZetoEngine extends ZetoEventObject {
 
 		for (let touchIndex = 0; touchIndex < this.activeTouchPoints.length; touchIndex++) {
 			let touchPoint = this.touchPoints[this.activeTouchPoints[touchIndex]];
-
+			if (!touchPoint) {
+				continue;
+			}
 			if (this.frameEvent.frame > touchPoint.startFrame + 1) {
 				continue; // Skip if the touch started before this frame
 			}
-
 			if (!touchPoint.listenerObjects) {
 				continue; // Skip if the touch has no listener objects
 			}

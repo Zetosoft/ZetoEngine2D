@@ -33,6 +33,14 @@ function buildCheckpoints(startCount, endCount, step) {
 	return checkpoints;
 }
 
+function buildScenarioCheckpoints(scenarioName, startCount, endCount, step) {
+	let scenarioStep = step;
+	if (scenarioName === 'physics-structured') {
+		scenarioStep = Math.min(500, Math.max(200, step));
+	}
+	return buildCheckpoints(startCount, endCount, scenarioStep);
+}
+
 function createTextureDataUrl(size, fillStyle, strokeStyle = null) {
 	const canvas = document.createElement('canvas');
 	canvas.width = size;
@@ -334,7 +342,6 @@ function createPhysicsScenario(engine, random) {
 
 	function createBoundary(x, y, width, height) {
 		const boundary = engine.newRect(x, y, width, height, false);
-		boundary.isVisible = false;
 		group.insert(boundary, true, true);
 		engine.physics.addBody(boundary, 'static', { bounce: 0.15, friction: 0.2 });
 		return boundary;
@@ -385,6 +392,120 @@ function createPhysicsScenario(engine, random) {
 	};
 }
 
+function createPhysicsStructuredScenario(engine, random) {
+	const group = engine.newGroup(0, 0);
+	group.x = engine.cX;
+	group.y = engine.cY;
+	const objects = [];
+	engine.physics.start();
+	engine.physics.setGravity(0, 0.08);
+
+	const halfW = Math.min(engine.width * 0.52, 860);
+	const floorY = 600;
+	const wallThickness = 40;
+
+	const createStaticBody = (x, y, width, height, options = {}) => {
+		const body = engine.newRect(x, y, width, height, false);
+		body.fillColor = '#444444';
+		group.insert(body, true, true);
+		engine.physics.addBody(body, 'static', { bounce: 0.08, friction: 0.4, ...options });
+		return body;
+	};
+
+	const createStaticPolygon = (x, y, points, options = {}) => {
+		const poly = engine.newPolygon(x, y, points, false);
+		group.insert(poly, true, true);
+		engine.physics.addBody(poly, 'static', { bounce: 0.08, friction: 0.4, shape: points, ...options });
+		return poly;
+	};
+
+	createStaticBody(-halfW - wallThickness * 0.5, 0, wallThickness, 420);
+	createStaticBody(halfW + wallThickness * 0.5, 28, wallThickness, 520);
+	createStaticBody(0, floorY + 8, halfW * 2 + wallThickness * 3, 30);
+	createStaticPolygon(
+		-halfW + 120,
+		floorY - 60,
+		[
+			{ x: -170, y: 60 },
+			{ x: 25, y: -60 },
+			{ x: 220, y: 60 },
+			{ x: 220, y: 110 },
+			{ x: -170, y: 110 },
+		],
+		{ bounce: 0.06, friction: 0.55 },
+	);
+	createStaticPolygon(
+		110,
+		floorY - 200,
+		[
+			{ x: -180, y: 0 },
+			{ x: 25, y: -130 },
+			{ x: 180, y: 0 },
+		],
+		{ bounce: 0.06, friction: 0.45 },
+	);
+
+	function spawnDynamicOne(type, x, y, width, height, radius) {
+		let body;
+		if (type === 'circle') {
+			body = engine.newCircle(x, y, radius, false);
+			body.fillColor = '#66D9FF';
+			engine.physics.addBody(body, 'dynamic', { radius: radius, bounce: 0.18, friction: 0.04 });
+		} else if (type === 'box') {
+			body = engine.newRect(x, y, width, height, false);
+			body.fillColor = '#B1FF77';
+			engine.physics.addBody(body, 'dynamic', { bounce: 0.15, friction: 0.05 });
+		} else {
+			const vertices = [
+				{ x: -width * 0.5, y: -height * 0.35 },
+				{ x: width * 0.15, y: -height * 0.7 },
+				{ x: width * 0.55, y: -height * 0.2 },
+				{ x: width * 0.4, y: height * 0.6 },
+				{ x: -width * 0.45, y: height * 0.5 },
+			];
+			body = engine.newPolygon(x, y, vertices, false);
+			body.fillColor = '#FFB366';
+			engine.physics.addBody(body, 'dynamic', { shape: vertices, bounce: 0.18, friction: 0.04 });
+		}
+		group.insert(body, true, true);
+		body.body.setLinearVelocity(random.range(-1.1, 1.1), random.range(-0.8, 0.3));
+		body.body.setAngularVelocity(random.range(-0.25, 0.25));
+		objects.push(body);
+		return body;
+	}
+
+	return {
+		name: 'physics-structured',
+		count() {
+			return objects.length;
+		},
+		spawnUntil(targetCount, maxAdditions) {
+			let added = 0;
+			const step = Math.max(200, Math.min(1000, Math.floor(targetCount / 24)));
+			while (objects.length < targetCount && added < maxAdditions) {
+				const mode = objects.length % 3;
+				const column = objects.length % 12;
+				const row = Math.floor(objects.length / 12) % 12;
+				const x = -halfW + 100 + column * ((halfW * 1.6) / 11) + random.range(-18, 18);
+				const y = -200 + row * 28 + random.range(-10, 10);
+				if (mode === 0) {
+					spawnDynamicOne('box', x, y, 18 + random.range(0, 12), 18 + random.range(0, 12));
+				} else if (mode === 1) {
+					spawnDynamicOne('circle', x, y, 0, 0, 9 + random.range(0, 12));
+				} else {
+					spawnDynamicOne('polygon', x, y, 20 + random.range(0, 18), 20 + random.range(0, 18));
+				}
+				added++;
+			}
+		},
+		update() {},
+		cleanup() {
+			group.destroy();
+			engine.physics.pause();
+		},
+	};
+}
+
 class BenchmarkRunner {
 	constructor(engine, profiler, config, outputElement) {
 		this.engine = engine;
@@ -392,27 +513,41 @@ class BenchmarkRunner {
 		this.config = config;
 		this.outputElement = outputElement;
 		this.random = new SeededRandom(config.seed);
-		this.checkpoints = buildCheckpoints(config.startCount, config.endCount, config.step);
 		this.results = [];
-
 		this.scenarioIndex = 0;
 		this.checkpointIndex = 0;
 		this.phase = 'spawning';
 		this.phaseFrameCount = 0;
 		this.samples = [];
-
-		this.scenarios = [createSpriteScenario(engine, this.random), createParticleScenario(engine)];
-
-		this.log('...');
+		this.scenarioFactories = [];
 		if (!engine.physics.disabled) {
-			this.scenarios.push(createPhysicsScenario(engine, this.random));
-		} else {
-			this.log('Physics engine missing, skipping physics scenario.');
+			this.scenarioFactories.push(() => createPhysicsScenario(engine, this.random));
+			this.scenarioFactories.push(() => createPhysicsStructuredScenario(engine, this.random));
 		}
+
+		this.scenarios = [];
+		this.checkpoints = [];
+		this.refreshCheckpoints();
+	}
+
+	ensureScenario(index) {
+		if (!this.scenarioFactories || index >= this.scenarioFactories.length) {
+			return this.scenarios[index];
+		}
+		if (!this.scenarios[index]) {
+			this.scenarios[index] = this.scenarioFactories[index]();
+		}
+		return this.scenarios[index];
+	}
+
+	refreshCheckpoints() {
+		const scenario = this.currentScenario?.();
+		this.checkpoints = buildScenarioCheckpoints(scenario?.name ?? 'sprite-progressive', this.config.startCount, this.config.endCount, this.config.step);
+		this.checkpointIndex = 0;
 	}
 
 	currentScenario() {
-		return this.scenarios[this.scenarioIndex];
+		return this.ensureScenario(this.scenarioIndex);
 	}
 
 	targetCount() {
@@ -449,20 +584,29 @@ class BenchmarkRunner {
 		return stopScenario;
 	}
 
+	cleanupCurrentScenario() {
+		const scenario = this.scenarios[this.scenarioIndex];
+		if (scenario) {
+			scenario.cleanup();
+			this.scenarios[this.scenarioIndex] = null;
+		}
+	}
+
 	nextCheckpointOrScenario(forceScenarioStop = false) {
 		if (forceScenarioStop) {
-			this.currentScenario().cleanup();
+			this.cleanupCurrentScenario();
 			this.scenarioIndex++;
 			this.checkpointIndex = 0;
 			this.phase = 'spawning';
 			this.phaseFrameCount = 0;
 			this.samples = [];
 
-			if (this.scenarioIndex >= this.scenarios.length) {
+			if (this.scenarioIndex >= this.scenarioFactories.length) {
 				this.finish();
 				return;
 			}
 
+			this.refreshCheckpoints();
 			this.log('Starting scenario: ' + this.currentScenario().name);
 			return;
 		}
@@ -476,22 +620,24 @@ class BenchmarkRunner {
 			return;
 		}
 
-		this.currentScenario().cleanup();
+		this.cleanupCurrentScenario();
 		this.scenarioIndex++;
 		this.checkpointIndex = 0;
 		this.phase = 'spawning';
 		this.phaseFrameCount = 0;
 		this.samples = [];
 
-		if (this.scenarioIndex >= this.scenarios.length) {
+		if (this.scenarioIndex >= this.scenarioFactories.length) {
 			this.finish();
 			return;
 		}
 
+		this.refreshCheckpoints();
 		this.log('Starting scenario: ' + this.currentScenario().name);
 	}
 
 	finish() {
+		this.cleanupCurrentScenario();
 		this.engine.removeEventListener('exitframe', this.exitframeBind);
 		window.__zetoBenchmarkResults = {
 			config: this.config,
@@ -546,6 +692,7 @@ class BenchmarkRunner {
 	}
 
 	start() {
+		this.refreshCheckpoints();
 		this.exitframeBind = this.step.bind(this);
 		this.log('Starting scenario: ' + this.currentScenario().name);
 		this.engine.addEventListener('exitframe', this.exitframeBind);
