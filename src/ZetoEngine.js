@@ -465,6 +465,9 @@ class ZetoEngine extends ZetoEventObject {
 
 		for (let touchIndex = 0; touchIndex < this.activeTouchPoints.length; touchIndex++) {
 			let touchPoint = this.touchPoints[this.activeTouchPoints[touchIndex]];
+			if (!touchPoint) {
+				continue;
+			}
 
 			let phase = touchPoint.state == TOUCH_BEGAN ? began : hold;
 			let touchEvent = {
