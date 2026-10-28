@@ -194,6 +194,7 @@ class ZetoEngine extends ZetoEventObject {
 					startY: touch.pageY,
 					startTime: event.timeStamp,
 					startFrame: this.frameEvent.frame,
+					lastFrame: this.frameEvent.frame,
 					listenerObjects: [],
 					state: TOUCH_BEGAN,
 				};
@@ -210,6 +211,11 @@ class ZetoEngine extends ZetoEventObject {
 			if (!touchPoint) {
 				continue;
 			}
+			if (touchPoint.lastFrame == this.frameEvent.frame) {
+				continue;
+			}
+			touchPoint.lastFrame = this.frameEvent.frame;
+
 			let deltaX = touch.pageX - touchPoint.lastInputX;
 			let deltaY = touch.pageY - touchPoint.lastInputY;
 			touchPoint.lastInputX = touch.pageX;
@@ -266,6 +272,7 @@ class ZetoEngine extends ZetoEventObject {
 			}
 			touchPoint.lastInputX = touch.pageX;
 			touchPoint.lastInputY = touch.pageY;
+			touchPoint.lastFrame = this.frameEvent.frame;
 
 			let touchDiff = event.timeStamp - touchPoint.startTime;
 			let tapEvent = false;
@@ -1099,14 +1106,22 @@ class ZetoEngine extends ZetoEventObject {
 		event.preventDefault();
 	}
 
-	setCanvasLock(value) {
-		this.canvasLocked = value;
-		if (value) {
-			document.documentElement.style.overscrollBehavior = 'none';
-			document.body.style.overscrollBehavior = 'none';
+	setCanvasLock(valueY, valueX = true) {
+		this.canvasLocked = valueY;
+		if (valueY) {
+			document.documentElement.style.overscrollBehaviorY = 'none';
+			document.body.style.overscrollBehaviorY = 'none';
 		} else {
-			document.documentElement.style.overscrollBehavior = '';
-			document.body.style.overscrollBehavior = '';
+			document.documentElement.style.overscrollBehaviorY = '';
+			document.body.style.overscrollBehaviorY = '';
+		}
+
+		if (valueX) {
+			document.documentElement.style.overscrollBehaviorX = 'none';
+			document.body.style.overscrollBehaviorX = 'none';
+		} else {
+			document.documentElement.style.overscrollBehaviorX = '';
+			document.body.style.overscrollBehaviorX = '';
 		}
 	}
 }
