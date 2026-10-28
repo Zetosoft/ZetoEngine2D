@@ -19,26 +19,25 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 		collision: [],
 	};
 
-	constructor(engine, warn = true) {
+	constructor(engine, options = {}) {
 		super();
 
 		this.engine = engine;
-		try {
-			this.matterEngine = mEngine.create({
-				positionIterations: 2,
-				velocityIterations: 2,
-				constraintIterations: 1,
-			});
-			this.matterWorld = this.matterEngine.world;
 
-			this.collisionBind = this.collision.bind(this);
-			mEvents.on(this.matterEngine, 'collisionStart', this.collisionBind);
-			mEvents.on(this.matterEngine, 'collisionEnd', this.collisionBind);
-		} catch (error) {
-			if (warn) {
-				console.warn('Matter.js not found, physics engine is disabled');
-			}
+		if (this.disabled) {
+			return console.warn('Matter.js not found, physics engine is disabled');
 		}
+
+		this.matterEngine = mEngine.create({
+			positionIterations: options.positionIterations ?? 2,
+			velocityIterations: options.velocityIterations ?? 2,
+			constraintIterations: options.constraintIterations ?? 1,
+		});
+		this.matterWorld = this.matterEngine.world;
+
+		this.collisionBind = this.collision.bind(this);
+		mEvents.on(this.matterEngine, 'collisionStart', this.collisionBind);
+		mEvents.on(this.matterEngine, 'collisionEnd', this.collisionBind);
 	}
 
 	collision(event) {
@@ -98,17 +97,48 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 	}
 
 	addBody(object, bodyType, options) {
+		if (this.disabled) {
+			return;
+		}
+
 		object.body = new ZetoPhysicsBody(this, object, bodyType, options);
 		mComposite.add(this.matterWorld, object.body.matterBody);
 		this.bodies.push(object.body);
 	}
 
 	removeBody(object) {
-		object.removeEventListener('finalize', object.body.finalize);
-		mComposite.remove(this.matterWorld, object.body.matterBody);
+		this.removeBodyByBody(object?.body);
+	}
+
+	removeBodyByBody(body) {
+		if (!body) {
+			return;
+		}
+
+		let object = body.object;
+		if (object) {
+			object.removeEventListener('finalize', body.finalizeBind ?? body.finalize);
+		}
+
+		let bodyIndex = this.bodies.indexOf(body);
+		if (bodyIndex > -1) {
+			this.bodies.splice(bodyIndex, 1);
+		}
+
+		if (this.matterWorld && body.matterBody) {
+			mComposite.remove(this.matterWorld, body.matterBody);
+		}
+
+		if (object && object.body == body) {
+			object.body = null;
+		}
 	}
 
 	setGravity(x, y) {
+		if (this.disabled) {
+			return;
+		}
+		
 		this.matterEngine.gravity.x = x;
 		this.matterEngine.gravity.y = y;
 	}
@@ -123,6 +153,10 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 
 	stop() {
 		this.paused = true;
+	}
+
+	get disabled() {
+		return mEngine == undefined;
 	}
 }
 

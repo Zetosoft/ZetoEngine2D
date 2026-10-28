@@ -73,6 +73,7 @@ class ZetoAudioEngine {
 					target: audioObject,
 				});
 			}
+			return audioObject;
 		}
 	}
 

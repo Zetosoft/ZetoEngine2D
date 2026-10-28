@@ -107,6 +107,7 @@ class ZetoEngine extends ZetoEventObject {
 		super();
 
 		let moduleName = options.moduleName ?? false;
+		let moduleRoot = options.moduleRoot ?? './';
 		let moduleParams = options.moduleParams ?? {};
 		let loadedListener = options.loadedListener ?? false;
 		let progressListener = options.progressListener ?? false;
@@ -121,6 +122,7 @@ class ZetoEngine extends ZetoEventObject {
 		this.widgets = new ZetoWidgets(this);
 		this.strings = new ZetoStrings(this);
 		this.audio = new ZetoAudioEngine(this);
+		this.mainLoopBind = this.mainLoop.bind(this);
 
 		document.addEventListener('touchstart', {}); // Enables touch events on iOS if embedded in iframe
 
@@ -153,6 +155,7 @@ class ZetoEngine extends ZetoEventObject {
 
 		this.initCanvas(smoothing, canvas);
 
+		this.moduleRoot = moduleRoot;
 		if (moduleName) {
 			this.load(moduleName, moduleParams, loadedListener, progressListener);
 		}
@@ -173,7 +176,9 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	touchStart(event) {
-		event.preventDefault();
+		if (this.canvasLocked) {
+			event.preventDefault();
+		}
 
 		let touches = event.changedTouches?.length > 0 ? event.changedTouches : [event];
 		for (let touchIndex = 0; touchIndex < touches.length; touchIndex++) {
@@ -239,12 +244,16 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	touchMove(event) {
-		event.preventDefault();
+		if (this.canvasLocked) {
+			event.preventDefault();
+		}
 		this.inputTouch(event);
 	}
 
 	touchEnd(event) {
-		event.preventDefault();
+		if (this.canvasLocked) {
+			event.preventDefault();
+		}
 
 		let touches = event.changedTouches?.length > 0 ? event.changedTouches : [event];
 		for (let touchIndex = 0; touchIndex < touches.length; touchIndex++) {
@@ -403,10 +412,7 @@ class ZetoEngine extends ZetoEventObject {
 		canvas.style.msUserSelect = 'none';
 		canvas.style.userSelect = 'none';
 
-		document.documentElement.style.overscrollBehavior = 'none';
-		document.body.style.overscrollBehavior = 'none';
-
-		this.animationFrameId = window.requestAnimationFrame(this.mainLoop.bind(this));
+		this.animationFrameId = window.requestAnimationFrame(this.mainLoopBind);
 	}
 
 	mainLoop(timeStamp) {
@@ -444,7 +450,7 @@ class ZetoEngine extends ZetoEventObject {
 			this.drawFPS(timeStamp);
 		}
 
-		this.animationFrameId = window.requestAnimationFrame(this.mainLoop.bind(this));
+		this.animationFrameId = window.requestAnimationFrame(this.mainLoopBind);
 	}
 
 	updateTouchPoints() {
@@ -462,6 +468,9 @@ class ZetoEngine extends ZetoEventObject {
 
 		for (let touchIndex = 0; touchIndex < this.activeTouchPoints.length; touchIndex++) {
 			let touchPoint = this.touchPoints[this.activeTouchPoints[touchIndex]];
+			if (!touchPoint) {
+				continue;
+			}
 
 			let phase = touchPoint.state == TOUCH_BEGAN ? began : hold;
 			let touchEvent = {
@@ -534,16 +543,21 @@ class ZetoEngine extends ZetoEventObject {
 
 		for (let touchIndex = 0; touchIndex < this.activeTouchPoints.length; touchIndex++) {
 			let touchPoint = this.touchPoints[this.activeTouchPoints[touchIndex]];
-
+			if (!touchPoint) {
+				continue;
+			}
 			if (this.frameEvent.frame > touchPoint.startFrame + 1) {
 				continue; // Skip if the touch started before this frame
 			}
-
 			if (!touchPoint.listenerObjects) {
 				continue; // Skip if the touch has no listener objects
 			}
 
 			if (touchObject || parentTouch) {
+				if (!this.pointInObjectLocalBounds(object, touchPoint.lastInputX, touchPoint.lastInputY)) {
+					continue;
+				}
+
 				if (context.isPointInPath(object.path.path, touchPoint.lastInputX, touchPoint.lastInputY)) {
 					if (parentTouch) {
 						if (touchPoint.listenerObjects.indexOf(parentTouch) == -1) {
@@ -567,14 +581,19 @@ class ZetoEngine extends ZetoEventObject {
 		let hoverObject = object.hasEventListener(hover) || parentHover; // hoverObject can be a parent and not the object itself
 		if (hoverObject) {
 			if (!hoverObject.hover) {
-				if (context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) {
+				if (this.pointInObjectLocalBounds(object, this.mouseX, this.mouseY) && context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) {
 					hoverObject.hover = this.frameEvent.frame;
 
 					let hoverEvent = { x: this.mouseX, y: this.mouseY, phase: began };
 					this.dispatchObjectEvent(hoverObject, hover, hoverEvent);
 				}
 			} else if (hoverObject.hover != this.frameEvent.frame) {
-				if (!hoverObject.isVisible || hoverObject.alpha == 0 || !context.isPointInPath(object.path.path, this.mouseX, this.mouseY)) {
+				if (
+					!hoverObject.isVisible ||
+					hoverObject.alpha == 0 ||
+					!this.pointInObjectLocalBounds(object, this.mouseX, this.mouseY) ||
+					!context.isPointInPath(object.path.path, this.mouseX, this.mouseY)
+				) {
 					// My guess is that this is the main bottleneck
 					hoverObject.hover = false;
 
@@ -640,9 +659,33 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	dispatchObjectEvent(object, eventName, event) {
+		let listeners = object.listeners?.[eventName];
+		if (!listeners || listeners.length <= 0) {
+			return false;
+		}
+
 		let targetEvent = { ...event };
 		targetEvent.target = object;
 		return object.dispatchEvent(eventName, targetEvent);
+	}
+
+	pointInObjectLocalBounds(object, x, y) {
+		let matrix = object.worldTransform;
+		let determinant = matrix.a * matrix.d - matrix.b * matrix.c;
+		if (determinant == 0) {
+			return false;
+		}
+
+		let relativeX = x - matrix.e;
+		let relativeY = y - matrix.f;
+		let localX = (matrix.d * relativeX - matrix.c * relativeY) / determinant;
+		let localY = (-matrix.b * relativeX + matrix.a * relativeY) / determinant;
+
+		localX -= object.internal.anchorOffsetX;
+		localY -= object.internal.anchorOffsetY;
+
+		let bounds = object.bounds.local;
+		return localX >= bounds.x1 && localX <= bounds.x2 && localY >= bounds.y1 && localY <= bounds.y2;
 	}
 
 	drawUpdate(context, object, alpha = 1, isParentTouch = false, isParentHover = false) {
@@ -696,75 +739,75 @@ class ZetoEngine extends ZetoEventObject {
 		this.dispatchEvent('resize', resizeEvent);
 	}
 
-	newGroup(x, y) {
+	newGroup(x, y, insertToRoot = true) {
 		let group = new ZetoGroup(this, x, y);
-		return this.rootGroup.insert(group, true);
+		return insertToRoot ? this.rootGroup.insert(group, true) : group;
 	}
 
-	newContainer(x, y, width, height) {
+	newContainer(x, y, width, height, insertToRoot = true) {
 		let container = new ZetoContainer(this, x, y, width, height);
-		return this.rootGroup.insert(container, true);
+		return insertToRoot ? this.rootGroup.insert(container, true) : container;
 	}
 
-	newCamera(x, y) {
+	newCamera(x, y, insertToRoot = true) {
 		let camera = new ZetoCamera(this, x, y);
-		return this.rootGroup.insert(camera, true);
+		return insertToRoot ? this.rootGroup.insert(camera, true) : camera;
 	}
 
-	newText(options) {
+	newText(options, insertToRoot = true) {
 		let textObject = new ZetoTextObject(this, options);
-		return this.rootGroup.insert(textObject, true);
+		return insertToRoot ? this.rootGroup.insert(textObject, true) : textObject;
 	}
 
-	newImage(id, x, y) {
+	newImage(id, x, y, insertToRoot = true) {
 		let fill = this.loadedImages[id];
 		if (fill) {
-			return this.newImageRect(id, x, y, fill.image.width, fill.image.height);
+			return this.newImageRect(id, x, y, fill.image.width, fill.image.height, insertToRoot);
 		} else {
 			throw new Error('Image not loaded: ' + id);
 		}
 	}
 
-	newImageRect(id, x, y, width, height) {
+	newImageRect(id, x, y, width, height, insertToRoot = true) {
 		let fill = this.loadedImages[id];
 		if (fill) {
 			let rectWidth = width ?? fill.image.width;
 			let rectHeight = height ?? fill.image.height;
 
-			let imageRect = this.newRect(x, y, rectWidth, rectHeight);
+			let imageRect = this.newRect(x, y, rectWidth, rectHeight, false);
 			imageRect.fill = { image: fill.image, currentFrameData: { x: 0, y: 0, width: fill.image.width, height: fill.image.height } };
 
-			return this.rootGroup.insert(imageRect, true);
+			return insertToRoot ? this.rootGroup.insert(imageRect, true) : imageRect;
 		} else {
 			throw new Error('Image not loaded: ' + id);
 		}
 	}
 
-	newCircle(x, y, radius) {
+	newCircle(x, y, radius, insertToRoot = true) {
 		let criclePath = new ZetoPath();
 		criclePath.arc(0, 0, radius, 0, 2 * pi, false);
 
 		let circle = new ZetoEngineObject(this, criclePath, x, y);
-		return this.rootGroup.insert(circle, true);
+		return insertToRoot ? this.rootGroup.insert(circle, true) : circle;
 	}
 
-	newRoundedRect(x, y, width, height, radius) {
+	newRoundedRect(x, y, width, height, radius, insertToRoot = true) {
 		let roundedRectPath = new ZetoPath();
 		roundedRectPath.roundRect(-width * 0.5, -height * 0.5, width, height, radius);
 
 		let roundedRect = new ZetoEngineObject(this, roundedRectPath, x, y);
-		return this.rootGroup.insert(roundedRect, true);
+		return insertToRoot ? this.rootGroup.insert(roundedRect, true) : roundedRect;
 	}
 
-	newRect(x, y, width, height) {
+	newRect(x, y, width, height, insertToRoot = true) {
 		let rectPath = new ZetoPath();
 		rectPath.rect(-width * 0.5, -height * 0.5, width, height);
 
 		let rect = new ZetoEngineObject(this, rectPath, x, y);
-		return this.rootGroup.insert(rect, true);
+		return insertToRoot ? this.rootGroup.insert(rect, true) : rect;
 	}
 
-	newPolygon(x, y, vertices) {
+	newPolygon(x, y, vertices, insertToRoot = true) {
 		let polygonPath = new ZetoPath();
 		for (let vertexIndex = 0; vertexIndex < vertices.length; vertexIndex++) {
 			let vertex = vertices[vertexIndex];
@@ -777,7 +820,7 @@ class ZetoEngine extends ZetoEventObject {
 		polygonPath.closePath();
 
 		let polygon = new ZetoEngineObject(this, polygonPath, x, y);
-		return this.rootGroup.insert(polygon, true);
+		return insertToRoot ? this.rootGroup.insert(polygon, true) : polygon;
 	}
 
 	newImageSheet(id, sheetData) {
@@ -812,9 +855,9 @@ class ZetoEngine extends ZetoEventObject {
 		};
 	}
 
-	newSprite(imageSheet, sequenceData, x = 0, y = 0) {
+	newSprite(imageSheet, sequenceData, x = 0, y = 0, insertToRoot = true) {
 		let sprite = new ZetoSprite(this, imageSheet, sequenceData, x, y);
-		return this.rootGroup.insert(sprite, true);
+		return insertToRoot ? this.rootGroup.insert(sprite, true) : sprite;
 	}
 
 	react(propertyFunction) {
@@ -981,7 +1024,7 @@ class ZetoEngine extends ZetoEventObject {
 
 	async load(moduleName, params, loadedListener, progressListener) {
 		let jsName = moduleName.replace(/\./g, '/');
-		const module = this.loadedModules[moduleName] ?? (await import(/*webpackIgnore: true*/ `./${jsName}.js?c=${Date.now()}`));
+		const module = this.loadedModules[moduleName] ?? (await import(/*webpackIgnore: true*/ `${this.moduleRoot}${jsName}.js?c=${Date.now()}`));
 		this.loadedModules[moduleName] = module;
 		let createEvent = {
 			params: params,
@@ -996,7 +1039,7 @@ class ZetoEngine extends ZetoEventObject {
 
 	async unload(moduleName, params, unloadedListener) {
 		let jsName = moduleName.replace(/\./g, '/');
-		const module = this.loadedModules[moduleName] ?? (await import(/*webpackIgnore: true*/ `./${jsName}.js`));
+		const module = this.loadedModules[moduleName] ?? (await import(/*webpackIgnore: true*/ `${this.moduleRoot}${jsName}.js`));
 		this.loadedModules[moduleName] = module;
 		let destroyEvent = {
 			params: params,
@@ -1059,13 +1102,11 @@ class ZetoEngine extends ZetoEventObject {
 	setCanvasLock(value) {
 		this.canvasLocked = value;
 		if (value) {
-			for (let lockIndex = 0; lockIndex < lockCanvasEvents.length; lockIndex++) {
-				this.canvas.addEventListener(lockCanvasEvents[lockIndex], this.#preventDefault);
-			}
+			document.documentElement.style.overscrollBehavior = 'none';
+			document.body.style.overscrollBehavior = 'none';
 		} else {
-			for (let lockIndex = 0; lockIndex < lockCanvasEvents.length; lockIndex++) {
-				this.canvas.removeEventListener(lockCanvasEvents[lockIndex], this.#preventDefault);
-			}
+			document.documentElement.style.overscrollBehavior = '';
+			document.body.style.overscrollBehavior = '';
 		}
 	}
 }

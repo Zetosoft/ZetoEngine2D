@@ -7,7 +7,9 @@
     "build": "node ./src/elite.js --build",
     "copy": "node ./src/elite.js --copy",
     "watch": "node ./src/elite.js --watch",
-    "test": "node ./src/elite.js --test --"
+    "test": "node ./src/elite.js --test --",
+    "benchmark": "node ./benchmark/run-benchmark.js",
+    "benchmark:compare": "node ./benchmark/compare-results.js"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",

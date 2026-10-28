@@ -27,12 +27,12 @@ class ZetoScrollView extends ZetoWidget {
 	constructor(engine, options = {}) {
 		super(engine, options.x, options.y);
 
-		this.background = engine.newRect(0, 0, options.width, options.height);
+		this.background = engine.newRect(0, 0, options.width, options.height, false);
 		this.background.fillColor = options.fillColor ?? '#00000000';
 		this.background.addEventListener('touch', this.#onTouch.bind(this));
 		this.insert(this.background);
 
-		this.container = engine.newContainer(0, 0, options.width, options.height);
+		this.container = engine.newContainer(0, 0, options.width, options.height, false);
 		this.insert(this.container);
 
 		this.horizontalScrollDisabled = options.horizontalScrollDisabled ?? false;
