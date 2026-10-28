@@ -176,7 +176,9 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	touchStart(event) {
-		event.preventDefault();
+		if (this.canvasLocked) {
+			event.preventDefault();
+		}
 
 		let touches = event.changedTouches?.length > 0 ? event.changedTouches : [event];
 		for (let touchIndex = 0; touchIndex < touches.length; touchIndex++) {
@@ -242,12 +244,16 @@ class ZetoEngine extends ZetoEventObject {
 	}
 
 	touchMove(event) {
-		event.preventDefault();
+		if (this.canvasLocked) {
+			event.preventDefault();
+		}
 		this.inputTouch(event);
 	}
 
 	touchEnd(event) {
-		event.preventDefault();
+		if (this.canvasLocked) {
+			event.preventDefault();
+		}
 
 		let touches = event.changedTouches?.length > 0 ? event.changedTouches : [event];
 		for (let touchIndex = 0; touchIndex < touches.length; touchIndex++) {
@@ -405,9 +411,6 @@ class ZetoEngine extends ZetoEventObject {
 		canvas.style.mozUserSelect = 'none';
 		canvas.style.msUserSelect = 'none';
 		canvas.style.userSelect = 'none';
-
-		document.documentElement.style.overscrollBehavior = 'none';
-		document.body.style.overscrollBehavior = 'none';
 
 		this.animationFrameId = window.requestAnimationFrame(this.mainLoopBind);
 	}
@@ -1099,13 +1102,11 @@ class ZetoEngine extends ZetoEventObject {
 	setCanvasLock(value) {
 		this.canvasLocked = value;
 		if (value) {
-			for (let lockIndex = 0; lockIndex < lockCanvasEvents.length; lockIndex++) {
-				this.canvas.addEventListener(lockCanvasEvents[lockIndex], this.#preventDefault);
-			}
+			document.documentElement.style.overscrollBehavior = 'none';
+			document.body.style.overscrollBehavior = 'none';
 		} else {
-			for (let lockIndex = 0; lockIndex < lockCanvasEvents.length; lockIndex++) {
-				this.canvas.removeEventListener(lockCanvasEvents[lockIndex], this.#preventDefault);
-			}
+			document.documentElement.style.overscrollBehavior = '';
+			document.body.style.overscrollBehavior = '';
 		}
 	}
 }
