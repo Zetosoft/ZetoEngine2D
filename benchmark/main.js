@@ -398,17 +398,52 @@ function createPhysicsSimpleScenario(engine, random) {
 	group.y = engine.cY;
 	const objects = [];
 	engine.physics.start();
-	engine.physics.setGravity(0, 0.08);
+	engine.physics.setGravity(0, 0.45);
+
+	const halfW = Math.min(engine.width * 0.42, 680);
+	const halfH = Math.min(engine.height * 0.34, 300);
+	const wallThickness = 34;
+
+	function createWall(x, y, width, height) {
+		const wall = engine.newRect(x, y, width, height, false);
+		wall.fillColor = '#505A63';
+		group.insert(wall, true, true);
+		engine.physics.addBody(wall, 'static', { bounce: 0.14, friction: 0.7 });
+		return wall;
+	}
+
+	createWall(-halfW - wallThickness * 0.5, 0, wallThickness, halfH * 2 + 100);
+	createWall(halfW + wallThickness * 0.5, 0, wallThickness, halfH * 2 + 100);
+	createWall(0, halfH + wallThickness * 0.5, halfW * 2 + wallThickness * 2, wallThickness);
+
+	const floorY = halfH + 30;
+	const floor = engine.newRect(0, floorY, halfW * 2 + wallThickness * 3, wallThickness * 1.2, false);
+	floor.fillColor = '#50636D';
+	group.insert(floor, true, true);
+	engine.physics.addBody(floor, 'static', { bounce: 0.1, friction: 0.9 });
+
+	function spawnOne(index) {
+		const radius = 7 + random.range(0, 11);
+		const x = random.range(-halfW * 0.7, halfW * 0.7);
+		const y = random.range(-halfH * 0.35, -halfH * 0.05);
+		const circle = engine.newCircle(x, y, radius, false);
+		circle.fillColor = '#7ED3FF';
+		group.insert(circle, true, true);
+		engine.physics.addBody(circle, 'dynamic', { radius: radius, bounce: 0.18, friction: 0.04 });
+		circle.body.setLinearVelocity(random.range(-2.0, 2.0), random.range(-0.8, 0.8));
+		circle.body.setAngularVelocity(random.range(-0.8, 0.8));
+		objects.push(circle);
+	}
 
 	return {
-		name: 'physics-simple',
+		name: 'physics-circle-arena',
 		count() {
 			return objects.length;
 		},
 		spawnUntil(targetCount, maxAdditions) {
 			let added = 0;
 			while (objects.length < targetCount && added < maxAdditions) {
-				// Implement spawn logic for simple scenario here
+				spawnOne(objects.length);
 				added++;
 			}
 		},
@@ -551,9 +586,8 @@ class BenchmarkRunner {
 		if (engine.physics.isMatter()) {
 			this.scenarioFactories.push(() => createPhysicsScenario(engine, this.random));
 			this.scenarioFactories.push(() => createPhysicsStructuredScenario(engine, this.random));
-		} else {
-			this.scenarioFactories.push(() => createPhysicsSimpleScenario(engine, this.random));
 		}
+		this.scenarioFactories.push(() => createPhysicsSimpleScenario(engine, this.random));
 
 		this.scenarios = [];
 		this.checkpoints = [];
