@@ -70,6 +70,8 @@ class ZetoEngine extends ZetoEventObject {
 
 	audioContext;
 
+	cacheBuster = true;
+
 	cX;
 	cY;
 	width;
@@ -108,6 +110,7 @@ class ZetoEngine extends ZetoEventObject {
 
 		let moduleName = options.moduleName ?? false;
 		let moduleRoot = options.moduleRoot ?? './';
+		let cacheBuster = options.cacheBuster ?? this.cacheBuster;
 		let moduleParams = options.moduleParams ?? {};
 		let loadedListener = options.loadedListener ?? false;
 		let progressListener = options.progressListener ?? false;
@@ -156,6 +159,7 @@ class ZetoEngine extends ZetoEventObject {
 		this.initCanvas(smoothing, canvas);
 
 		this.moduleRoot = moduleRoot;
+		this.cacheBuster = cacheBuster;
 		if (moduleName) {
 			this.load(moduleName, moduleParams, loadedListener, progressListener);
 		}
@@ -1031,7 +1035,8 @@ class ZetoEngine extends ZetoEventObject {
 
 	async load(moduleName, params, loadedListener, progressListener) {
 		let jsName = moduleName.replace(/\./g, '/');
-		const module = this.loadedModules[moduleName] ?? (await import(/*webpackIgnore: true*/ `${this.moduleRoot}${jsName}.js?c=${Date.now()}`));
+		let cacheBuster = this.cacheBuster ? `?c=${Date.now()}` : '';
+		const module = this.loadedModules[moduleName] ?? (await import(/*webpackIgnore: true*/ `${this.moduleRoot}${jsName}.js${cacheBuster}`));
 		this.loadedModules[moduleName] = module;
 		let createEvent = {
 			params: params,

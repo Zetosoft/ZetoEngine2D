@@ -34,9 +34,24 @@ For a live demo, visit [ZetoEngine2D author page](https://basiliogerman.com). Wo
 </html>
 ```
 
-The following is an example of a game module. This module is located in `js/game/main.js`. The module should export two functions: `create` and `destroy`. The `create` function is called when the game is started, and the `destroy` function is called when the game is stopped. The `create` function should load assets and set up the game, while the `destroy` function should clean up any resources used by the game. This template shows how to load assets and set up a loading screen. The `onAssetsProgress` function is called while assets are loading, and the `onAssetsLoaded` function is called when all assets are loaded. The `resizeLoadingListener` function is called when the window is resized and resizes the loading bar to fit the window. The `createLoadingGroup` function creates the loading screen. The `create` function creates the loading screen and loads assets. The `destroy` does nothing since we do not switch scenes in this example.
+The following is an example of a game module. It shows how to load assets and set up a loading screen. This module is located in `js/game/main.js`. But first, some notes about the module structure, and things you should keep in mind:
 
-One of the most important aspects is that you will receive the engine object as a parameter in the create & destroy functions. This object is used to used to create objects, load assets, play sounds and more. A complete list of the engine object properties and functions is available in the API Reference section. The following is an example of a game module:
+The module should export two functions: 
+ - `create`: called when the game is started
+  - should load assets and set up the game with `engine.loadAssets()`
+ - `destroy`: called when the game is stopped. 
+  - should clean up any resources used by the game
+
+The `event.complete()` and `event.progress()` functions are used to register callbacks for when asset loading is complete and for progress updates, respectively. The progress callback receives an event object with a `progress` property indicating the loading progress as a value between 0 and 1.
+
+```javascript
+	engine.loadAssets(images, audio, data, event.complete(onAssetsLoaded), event.progress(onAssetsProgress));
+```
+
+The `resizeLoadingListener` function is called when the window is resized and resizes the loading bar to fit the window. The `createLoadingGroup` function creates the loading screen. The `create` function creates the loading screen and loads assets. The `destroy` does nothing since we do not switch scenes in this example.
+
+One of the most important aspects is that you will receive the engine object as a parameter in the create & destroy functions. This object is used to used to create objects, load assets, play sounds and more. A complete list of the engine object properties and functions is available in the API Reference section. Here is the full template:
+
 
 ```javascript
 var images = [
@@ -277,9 +292,16 @@ Other functions available in the Engine class are:
 - **engine.setCanvasLock(value)** Locks all scrolling when the canvas is touched. Useful for games that need a steady canvas
 - **engine.getAsset(type, id)** Returns a raw asset object, used to get the raw image, audio or data object. The type can be `image`, `audio`, or `data`
 
-When using `load` and `unload`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js` (default moduleRoot is `./`). The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `load` will call the exported `create` function in the module, and `unload` will call the exported `destroy` function in the module.
+With the `engine.getImageFill` function, you can create for example a rounded rectangle, circle or polygon with an image fill. The following example creates a rounded rectangle with an image fill:
 
-The `loadedListener` and the `progressListener` function will be called when you call the `complete` and `progress` functions in the module. `unloadedListener` will be called when you call the `complete` function as well, but inside the `destroy` function. on `create`, The `event.complete()` and `event.progress()` functions accept a function as a parameter, and this function will be called after the external `loadedListener`, `progressListener` or `unloadedListener` functions are called. For example:
+```javascript
+let roundedRect = engine.newRoundedRect(0, 0, 380, 300, 20);
+roundedRect.fill = engine.getImageFill('win-bg', true);
+```
+
+When using `engine.load()` and `engine.unload()`, the `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js` (default moduleRoot is `./`). The `params` parameter is an object that is passed to the module on the called function, you can retrieve these params in the `event.params` property. `engine.load()` will call the exported `create` function in the module, and `engine.unload()` will call the exported `destroy` function in the module.
+
+The `loadedListener` and the `progressListener` function will be called when you call the `event.complete()` and `event.progress()` functions in the module. `unloadedListener` will be called when you call the `event.complete()` function as well, but inside the `destroy` function. On `create`, the `event.complete()` and `event.progress()` functions accept a function as a parameter, and this function will be called after the external `loadedListener`, `progressListener` or `unloadedListener` functions are called. For example:
 
 ```html
 <script src="/js/arcade/matter.js"></script>
@@ -334,12 +356,17 @@ export function destroy(event) {
 }
 ```
 
-With the `engine.getImageFill` function, you can create for example a rounded rectangle, circle or polygon with an image fill. The following example creates a rounded rectangle with an image fill:
+The `new ZetoEngine(options = {})` constructor accepts the following options:
 
-```javascript
-let roundedRect = engine.newRoundedRect(0, 0, 380, 300, 20);
-roundedRect.fill = engine.getImageFill('win-bg', true);
-```
+- **moduleName** (Optional, string) The name of the module to load when the engine starts. This should be in dot format, for example `'game.main'`, and it is resolved relative to `moduleRoot`.
+- **moduleRoot** (Optional, string) The root folder used to resolve module names. Defaults to `'./'`.
+- **cacheBuster** (Optional, boolean) Adds a cache-busting value to asset URLs when loading files. Defaults to `true`.
+- **moduleParams** (Optional, object) A plain object passed to the module as `event.params`, which can be read in the module's `create` and `destroy` functions.
+- **loadedListener** (Optional, function) A callback called after the module completes loading and the `event.complete()` function has finished executing.
+- **progressListener** (Optional, function) A callback called while assets are loading, receiving each progress update from the module.
+- **smoothing** (Optional, boolean) Enables or disables canvas smoothing. Defaults to `false`.
+- **canvas** (Optional, string|HTMLCanvasElement) The canvas ID or canvas element to use instead of the default `'canvas'` element.
+- **warn** (Optional, boolean) Warns if any issues occur during the engine's initialization or runtime and Matter.js related issues.
 
 ### Event Objects
 
