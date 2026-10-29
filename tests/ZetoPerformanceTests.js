@@ -58,4 +58,36 @@ export function test({ tester }) {
 		tester.assertSame(0, physics.bodies.length, 'removed body should be removed from bodies list');
 		tester.assertSame(null, object.body, 'removed body reference should be cleared from object');
 	});
+
+	tester.test('container anchorChildren defaults true and false decouples children from anchor', (setup) => {
+		const container = setup.engine.newContainer(0, 0, 100, 100, false);
+		const child = setup.engine.newRect(0, 0, 10, 10, false);
+		container.insert(child);
+
+		container.anchorX = 0;
+		tester.assertSame(50, container.internal.anchorOffsetX, 'container anchor should move clip bounds with width-based offset');
+		tester.assertSame(0, container.view.x, 'children should remain lock-step with clip bounds when anchorChildren is true');
+
+		container.anchorChildren = false;
+		container.anchorX = 1;
+		tester.assertSame(-50, container.internal.anchorOffsetX, 'container anchor should still update clip-bounds offset when decoupled');
+		tester.assertSame(100, container.view.x, 'children should be decoupled from clip-bounds anchor movement when anchorChildren is false');
+	});
+
+	tester.test('scroll view defaults to anchorChildren true and width updates preserve anchor offsets', (setup) => {
+		const scrollView = setup.engine.widgets.newScrollView({
+			x: 0,
+			y: 0,
+			width: 100,
+			height: 80,
+		});
+
+		tester.assertSame(true, scrollView.anchorChildren, 'scroll view should default anchorChildren to true');
+
+		scrollView.anchorX = 0;
+		tester.assertSame(50, scrollView.internal.anchorOffsetX, 'scroll view anchor offset should use viewport width');
+
+		scrollView.width = 200;
+		tester.assertSame(100, scrollView.internal.anchorOffsetX, 'scroll view width changes should refresh anchor offset');
+	});
 }

@@ -26,6 +26,7 @@ class ZetoScrollView extends ZetoWidget {
 
 	constructor(engine, options = {}) {
 		super(engine, options.x, options.y);
+		this.anchorChildren = options.anchorChildren ?? true;
 
 		this.background = engine.newRect(0, 0, options.width, options.height, false);
 		this.background.fillColor = options.fillColor ?? '#00000000';
@@ -59,6 +60,7 @@ class ZetoScrollView extends ZetoWidget {
 	set width(value) {
 		this.background.width = value;
 		this.container.width = value;
+		this.updateBounds();
 	}
 
 	get height() {
@@ -68,6 +70,7 @@ class ZetoScrollView extends ZetoWidget {
 	set height(value) {
 		this.background.height = value;
 		this.container.height = value;
+		this.updateBounds();
 	}
 
 	set scrollX(value) {

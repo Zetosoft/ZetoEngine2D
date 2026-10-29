@@ -234,7 +234,7 @@ Other important properties containing other parts of the engine are:
 The following functions create Engine Objects.
 
 - **engine.newGroup(x, y)** Creates a new group object
-- **engine.newContainer(x, y, width, height)** Creates a new container object. Containers are like groups, but they have a width and height. Everything inside the container is clipped to the container bounds.
+- **engine.newContainer(x, y, width, height)** Creates a new container object. Containers are like groups, but they have a width and height. Everything inside the container is clipped to the container bounds. Container clipping bounds follow `anchorX`/`anchorY`, and `container.anchorChildren` defaults to `true` (set `false` to decouple children from clip-bounds anchor movement).
 - **engine.newCamera(x, y)** Creates a new camera object
 - **engine.newText(options)** Creates a new text object
 - **engine.newImage(id, x, y)** Creates a new image object
@@ -556,6 +556,7 @@ The following options are available when creating a scroll view with the `engine
 - **options.scrollX = 0** The x position of the scroll view
 - **options.scrollY = 0** The y position of the scroll view
 - **options.fillColor** The fill color of the scroll view background, defaults to transparent
+- **options.anchorChildren = true** If `true`, the scroll view's viewport children move with the scroll view anchor. Set `false` to retain group-style decoupled anchor behavior.
 
 ### Reactive variables
 
