@@ -360,7 +360,7 @@ The `new ZetoEngine(options = {})` constructor accepts the following options:
 
 - **moduleName** (Optional, string) The name of the module to load when the engine starts. This should be in dot format, for example `'game.main'`, and it is resolved relative to `moduleRoot`.
 - **moduleRoot** (Optional, string) The root folder used to resolve module names. Defaults to `'./'`.
-- **cacheBuster** (Optional, boolean) Adds a cache-busting value to asset URLs when loading files. Defaults to `true`.
+- **cacheBuster** (Optional, boolean) Adds a cache-busting value to asset URLs when loading files. Defaults to `true`. Disable if you are using a webpack setup that already handles cache busting or bundling.
 - **moduleParams** (Optional, object) A plain object passed to the module as `event.params`, which can be read in the module's `create` and `destroy` functions.
 - **loadedListener** (Optional, function) A callback called after the module completes loading and the `event.complete()` function has finished executing.
 - **progressListener** (Optional, function) A callback called while assets are loading, receiving each progress update from the module.
