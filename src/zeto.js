@@ -16,6 +16,7 @@ export { ZetoParticleEngine } from './ZetoParticleEngine.js';
 export { ZetoPath } from './ZetoPath.js';
 export { ZetoPhysicsBody } from './ZetoPhysicsBody.js';
 export { ZetoPhysicsEngine } from './ZetoPhysicsEngine.js';
+export { libBody, libBodies, libEngine, libComposite, libVertices, libEvents } from './ZetoPhysics.js';
 export { ZetoSprite } from './ZetoSprite.js';
 export { ZetoStrings } from './ZetoStrings.js';
 export { ZetoTextObject } from './ZetoTextObject.js';

@@ -56,11 +56,3 @@ export const mathAbs = Math.abs;
 export const TOUCH_BEGAN = 1;
 export const TOUCH_HOLD = 2;
 
-///////////////////////////////////////////// Matter.js
-export const Matter = window.Matter;
-export const mBody = Matter?.Body ?? undefined;
-export const mBodies = Matter?.Bodies ?? undefined;
-export const mEngine = Matter?.Engine ?? undefined;
-export const mComposite = Matter?.Composite ?? undefined;
-export const mVertices = Matter?.Vertices ?? undefined;
-export const mEvents = Matter?.Events ?? undefined;

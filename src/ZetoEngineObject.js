@@ -1,6 +1,7 @@
 import { ZetoEventObject } from './ZetoEventObject.js';
 import { ZetoPath } from './ZetoPath.js';
-import { mathCos, mathSin, radianMultiplier, mBody } from './constants.js';
+import { mathCos, mathSin, radianMultiplier } from './constants.js';
+import { libBody } from './ZetoPhysics.js';
 
 class ZetoEngineObject extends ZetoEventObject {
 	listeners = {
@@ -166,7 +167,7 @@ class ZetoEngineObject extends ZetoEventObject {
 		var newOffset = (value - 0.5) * this.bounds.local.width;
 		if (this.body) {
 			var offsetDiff = newOffset + this.internal.anchorOffsetX;
-			mBody.translate(this.body.matterBody, { x: -offsetDiff, y: 0 });
+			libBody.translate(this.body.matterBody, { x: -offsetDiff, y: 0 });
 			this.body.internal.offsetX += offsetDiff;
 		}
 		this.internal.anchorOffsetX = -newOffset;
@@ -177,7 +178,7 @@ class ZetoEngineObject extends ZetoEventObject {
 		var newOffset = (value - 0.5) * this.bounds.local.height;
 		if (this.body) {
 			var offsetDiff = newOffset + this.internal.anchorOffsetY;
-			mBody.translate(this.body.matterBody, { x: 0, y: -offsetDiff });
+			libBody.translate(this.body.matterBody, { x: 0, y: -offsetDiff });
 			this.body.internal.offsetY += offsetDiff;
 		}
 		this.internal.anchorOffsetY = -newOffset;

@@ -1,5 +1,5 @@
 import { ZetoEventObject } from './ZetoEventObject.js';
-import { mEngine, mEvents, mComposite } from './constants.js';
+import { Matter, libEngine, libEvents, libComposite } from './ZetoPhysics.js';
 import { ZetoPhysicsBody } from './ZetoPhysicsBody.js';
 import { began, ended } from './constants.js';
 
@@ -8,8 +8,8 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 
 	debugColor = '#FF880077';
 
-	matterEngine;
-	matterWorld;
+	libEngine;
+	libWorld;
 	engine;
 	bodies = [];
 
@@ -24,20 +24,24 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 
 		this.engine = engine;
 
-		if (this.disabled) {
-			return console.warn('Matter.js not found, physics engine is disabled');
-		}
-
-		this.matterEngine = mEngine.create({
+		this.libEngine = libEngine.create({
 			positionIterations: options.positionIterations ?? 2,
 			velocityIterations: options.velocityIterations ?? 2,
 			constraintIterations: options.constraintIterations ?? 1,
 		});
-		this.matterWorld = this.matterEngine.world;
+		this.libWorld = this.libEngine.world;
 
 		this.collisionBind = this.collision.bind(this);
-		mEvents.on(this.matterEngine, 'collisionStart', this.collisionBind);
-		mEvents.on(this.matterEngine, 'collisionEnd', this.collisionBind);
+		libEvents.on(this.libEngine, 'collisionStart', this.collisionBind);
+		libEvents.on(this.libEngine, 'collisionEnd', this.collisionBind);
+	}
+
+	isMatter() {
+		return !!Matter && !!Matter.Engine && libEngine === Matter.Engine;
+	}
+
+	isZeto() {
+		return !this.isMatter();
 	}
 
 	collision(event) {
@@ -45,11 +49,11 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 		for (var index = 0; index < pairs.length; index++) {
 			var pair = pairs[index];
 
-			var matterBodyA = pair.bodyA;
-			var matterBodyB = pair.bodyB;
+			var libBodyA = pair.bodyA;
+			var libBodyB = pair.bodyB;
 
-			var bodyA = matterBodyA.zBody;
-			var bodyB = matterBodyB.zBody;
+			var bodyA = libBodyA.zBody;
+			var bodyB = libBodyB.zBody;
 
 			var phase = event.name == 'collisionStart' ? began : ended;
 			var contact = pair.contacts.find((contact) => contact != undefined);
@@ -85,7 +89,7 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 		}
 
 		var delta = event.delta > this.maxDelta ? this.maxDelta : event.delta; // Prevent huge physics jumps/tunnelings
-		mEngine.update(this.matterEngine, delta);
+		libEngine.update(this.libEngine, delta);
 	}
 
 	debugDraw(context, body) {
@@ -97,12 +101,8 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 	}
 
 	addBody(object, bodyType, options) {
-		if (this.disabled) {
-			return;
-		}
-
 		object.body = new ZetoPhysicsBody(this, object, bodyType, options);
-		mComposite.add(this.matterWorld, object.body.matterBody);
+		libComposite.add(this.libWorld, object.body.libBody);
 		this.bodies.push(object.body);
 	}
 
@@ -125,8 +125,8 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 			this.bodies.splice(bodyIndex, 1);
 		}
 
-		if (this.matterWorld && body.matterBody) {
-			mComposite.remove(this.matterWorld, body.matterBody);
+		if (this.libWorld && body.libBody) {
+			libComposite.remove(this.libWorld, body.libBody);
 		}
 
 		if (object && object.body == body) {
@@ -135,12 +135,8 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 	}
 
 	setGravity(x, y) {
-		if (this.disabled) {
-			return;
-		}
-		
-		this.matterEngine.gravity.x = x;
-		this.matterEngine.gravity.y = y;
+		this.libEngine.gravity.x = x;
+		this.libEngine.gravity.y = y;
 	}
 
 	start() {
@@ -155,9 +151,6 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 		this.paused = true;
 	}
 
-	get disabled() {
-		return mEngine == undefined;
-	}
 }
 
 export { ZetoPhysicsEngine };

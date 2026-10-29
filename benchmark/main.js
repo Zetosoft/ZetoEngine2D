@@ -392,6 +392,34 @@ function createPhysicsScenario(engine, random) {
 	};
 }
 
+function createPhysicsSimpleScenario(engine, random) {
+	const group = engine.newGroup(0, 0);
+	group.x = engine.cX;
+	group.y = engine.cY;
+	const objects = [];
+	engine.physics.start();
+	engine.physics.setGravity(0, 0.08);
+
+	return {
+		name: 'physics-simple',
+		count() {
+			return objects.length;
+		},
+		spawnUntil(targetCount, maxAdditions) {
+			let added = 0;
+			while (objects.length < targetCount && added < maxAdditions) {
+				// Implement spawn logic for simple scenario here
+				added++;
+			}
+		},
+		update() {},
+		cleanup() {
+			group.destroy();
+			engine.physics.pause();
+		},
+	};
+}
+
 function createPhysicsStructuredScenario(engine, random) {
 	const group = engine.newGroup(0, 0);
 	group.x = engine.cX;
@@ -520,9 +548,11 @@ class BenchmarkRunner {
 		this.phaseFrameCount = 0;
 		this.samples = [];
 		this.scenarioFactories = [];
-		if (!engine.physics.disabled) {
+		if (engine.physics.isMatter()) {
 			this.scenarioFactories.push(() => createPhysicsScenario(engine, this.random));
 			this.scenarioFactories.push(() => createPhysicsStructuredScenario(engine, this.random));
+		} else {
+			this.scenarioFactories.push(() => createPhysicsSimpleScenario(engine, this.random));
 		}
 
 		this.scenarios = [];

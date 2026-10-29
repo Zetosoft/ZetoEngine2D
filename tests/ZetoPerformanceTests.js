@@ -48,7 +48,7 @@ export function test({ tester }) {
 		const body = {
 			object: object,
 			finalizeBind: () => {},
-			matterBody: {},
+			libBody: {},
 		};
 		object.body = body;
 		physics.bodies.push(body);
