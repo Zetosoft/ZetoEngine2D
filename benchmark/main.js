@@ -1,11 +1,11 @@
 const defaultConfig = {
 	seed: 1337,
-	startCount: 1000,
+	startCount: 100,
 	endCount: 10000,
-	step: 1000,
-	spawnPerFrame: 120,
+	step: 50,
+	spawnPerFrame: 50,
 	warmupFrames: 20,
-	measureFrames: 180,
+	measureFrames: 120,
 	stopP95Ms: 20,
 	physicsStopP95Ms: 20,
 };
@@ -334,7 +334,7 @@ function createPhysicsScenario(engine, random) {
 	group.y = engine.cY;
 	const objects = [];
 	engine.physics.start();
-	engine.physics.setGravity(0, 0.08);
+	engine.physics.setGravity(0, 0.16);
 
 	const halfInnerWidth = Math.min(engine.width * 0.42, 720);
 	const halfInnerHeight = Math.min(engine.height * 0.36, 420);
@@ -361,7 +361,8 @@ function createPhysicsScenario(engine, random) {
 		const startX = -spawnHalfWidth + col * spacing;
 		const startY = -halfInnerHeight + 18 + row * spacing;
 
-		const rect = engine.newRect(startX, startY, 10, 10, false);
+		const randomSize = random.range(8, 32);
+		const rect = engine.newRect(startX, startY, randomSize, randomSize, false);
 		rect.fillColor = '#77AAFF';
 		group.insert(rect, true, true);
 		engine.physics.addBody(rect, 'dynamic', { bounce: 0.1, friction: 0.005 });
@@ -583,10 +584,10 @@ class BenchmarkRunner {
 		this.phaseFrameCount = 0;
 		this.samples = [];
 		this.scenarioFactories = [];
-		if (engine.physics.isMatter()) {
+		// if (engine.physics.isMatter()) {
 			this.scenarioFactories.push(() => createPhysicsScenario(engine, this.random));
 			this.scenarioFactories.push(() => createPhysicsStructuredScenario(engine, this.random));
-		}
+		// }
 		this.scenarioFactories.push(() => createPhysicsSimpleScenario(engine, this.random));
 
 		this.scenarios = [];

@@ -259,7 +259,46 @@ const getBodyVertices = (body) => {
 	return [];
 };
 
-const applyBodyCollisionResponse = (bodyA, bodyB, normalX, normalY, overlap) => {
+const applyAngularImpulse = (body, impulseX, impulseY, contactX, contactY) => {
+	if (!body || body.isStatic || body.inertia == Infinity) {
+		return;
+	}
+	if (contactX == null || contactY == null) {
+		return;
+	}
+
+	var offsetX = contactX - body.position.x;
+	var offsetY = contactY - body.position.y;
+	var torque = offsetX * impulseY - offsetY * impulseX;
+	body.angularVelocity += torque / Math.max(body.inertia ?? 1, 1);
+};
+
+export const applyRadialResponse = (bodyA, bodyB) => {
+	if (!bodyA || !bodyB) {
+		return;
+	}
+	var sourceBody = bodyA?.radialResponseStrength > 0 ? bodyA : bodyB?.radialResponseStrength > 0 ? bodyB : null;
+	if (!sourceBody || sourceBody.isStatic) {
+		return;
+	}
+	var targetBody = sourceBody == bodyA ? bodyB : bodyA;
+	if (!targetBody || targetBody.isStatic) {
+		return;
+	}
+	var dx = targetBody.position.x - sourceBody.position.x;
+	var dy = targetBody.position.y - sourceBody.position.y;
+	var distance = Math.hypot(dx, dy) || 1;
+	var strength = sourceBody.radialResponseStrength ?? 0;
+	if (strength <= 0) {
+		return;
+	}
+	var normalX = dx / distance;
+	var normalY = dy / distance;
+	targetBody.velocity.x += normalX * strength;
+	targetBody.velocity.y += normalY * strength;
+};
+
+const applyBodyCollisionResponse = (bodyA, bodyB, normalX, normalY, overlap, contactX = null, contactY = null) => {
 	if (!bodyA || !bodyB || overlap <= 0) {
 		return;
 	}
@@ -290,6 +329,7 @@ const applyBodyCollisionResponse = (bodyA, bodyB, normalX, normalY, overlap) => 
 	var relativeVelocityY = bodyB.velocity.y - bodyA.velocity.y;
 	var velocityAlongNormal = relativeVelocityX * normalX + relativeVelocityY * normalY;
 	if (velocityAlongNormal >= 0) {
+		applyRadialResponse(bodyA, bodyB);
 		return;
 	}
 
@@ -301,11 +341,18 @@ const applyBodyCollisionResponse = (bodyA, bodyB, normalX, normalY, overlap) => 
 	if (!bodyA.isStatic) {
 		bodyA.velocity.x -= impulseX * inverseMassA;
 		bodyA.velocity.y -= impulseY * inverseMassA;
+		if (!bodyB.isStatic) {
+			applyAngularImpulse(bodyA, -impulseX, -impulseY, contactX, contactY);
+		}
 	}
 	if (!bodyB.isStatic) {
 		bodyB.velocity.x += impulseX * inverseMassB;
 		bodyB.velocity.y += impulseY * inverseMassB;
+		if (!bodyA.isStatic) {
+			applyAngularImpulse(bodyB, impulseX, impulseY, contactX, contactY);
+		}
 	}
+	applyRadialResponse(bodyA, bodyB);
 };
 
 const resolveCircleCollision = (bodyA, bodyB) => {
@@ -335,7 +382,9 @@ const resolveCircleCollision = (bodyA, bodyB) => {
 	var normalX = dx / distance;
 	var normalY = dy / distance;
 	var overlap = Math.max(0, minDistance - distance);
-	applyBodyCollisionResponse(bodyA, bodyB, normalX, normalY, overlap);
+	var contactX = bodyA.position.x + normalX * (bodyA.radius ?? 0);
+	var contactY = bodyA.position.y + normalY * (bodyA.radius ?? 0);
+	applyBodyCollisionResponse(bodyA, bodyB, normalX, normalY, overlap, contactX, contactY);
 };
 
 const rotateVector = (x, y, angle) => {
@@ -403,7 +452,28 @@ const resolveCircleRectCollision = (circle, rect) => {
 	}
 
 	var normalWorld = rotateVector(normalLocalX, normalLocalY, rectAngle);
-	applyBodyCollisionResponse(circle, rect, normalWorld.x, normalWorld.y, overlap);
+	var contactLocal = { x: closestX, y: closestY };
+	var contactWorldDelta = rotateVector(contactLocal.x, contactLocal.y, rectAngle);
+	var contactX = rect.position.x + contactWorldDelta.x;
+	var contactY = rect.position.y + contactWorldDelta.y;
+	applyBodyCollisionResponse(circle, rect, normalWorld.x, normalWorld.y, overlap, contactX, contactY);
+};
+
+const getSupportVertex = (vertices, axisX, axisY) => {
+	if (!vertices || vertices.length <= 0) {
+		return { x: 0, y: 0 };
+	}
+	var bestVertex = vertices[0];
+	var bestProjection = bestVertex.x * axisX + bestVertex.y * axisY;
+	for (var index = 1; index < vertices.length; index++) {
+		var vertex = vertices[index];
+		var projection = vertex.x * axisX + vertex.y * axisY;
+		if (projection > bestProjection) {
+			bestProjection = projection;
+			bestVertex = vertex;
+		}
+	}
+	return bestVertex;
 };
 
 const resolveRectangleCollision = (bodyA, bodyB) => {
@@ -462,7 +532,12 @@ const resolveRectangleCollision = (bodyA, bodyB) => {
 	if (centerDeltaX * bestAxis.x + centerDeltaY * bestAxis.y < 0) {
 		bestAxis = { x: -bestAxis.x, y: -bestAxis.y };
 	}
-	applyBodyCollisionResponse(bodyA, bodyB, bestAxis.x, bestAxis.y, smallestOverlap);
+
+	var supportA = getSupportVertex(verticesA, bestAxis.x, bestAxis.y);
+	var supportB = getSupportVertex(verticesB, -bestAxis.x, -bestAxis.y);
+	var contactX = (supportA.x + supportB.x) * 0.5;
+	var contactY = (supportA.y + supportB.y) * 0.5;
+	applyBodyCollisionResponse(bodyA, bodyB, bestAxis.x, bestAxis.y, smallestOverlap, contactX, contactY);
 };
 
 const resolveBodyCollision = (bodyA, bodyB) => {
@@ -580,4 +655,3 @@ export const libEngine = Matter?.Engine ?? defaultEngineApi;
 export const libComposite = Matter?.Composite ?? defaultCompositeApi;
 export const libVertices = Matter?.Vertices ?? defaultVerticesApi;
 export const libEvents = Matter?.Events ?? defaultEventsApi;
-

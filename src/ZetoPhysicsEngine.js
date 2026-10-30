@@ -14,6 +14,7 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 	bodies = [];
 
 	maxDelta = 1000 / 30;
+	fallbackFixedDelta = 16;
 
 	listeners = {
 		collision: [],
@@ -88,7 +89,12 @@ class ZetoPhysicsEngine extends ZetoEventObject {
 			body.update(event);
 		}
 
-		var delta = event.delta > this.maxDelta ? this.maxDelta : event.delta; // Prevent huge physics jumps/tunnelings
+		var delta;
+		if (this.isZeto()) {
+			delta = this.fallbackFixedDelta;
+		} else {
+			delta = event.delta > this.maxDelta ? this.maxDelta : event.delta; // Prevent huge physics jumps/tunnelings
+		}
 		libEngine.update(this.libEngine, delta);
 	}
 

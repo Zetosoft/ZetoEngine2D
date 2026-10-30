@@ -10,7 +10,7 @@ For a live demo, visit [ZetoEngine2D author page](https://basiliogerman.com). Wo
 
 - Download the latest js file from the dist folder.
 - Place `zeto.js` in your javascript folder or its own folder. your game files should be in the same folder as `zeto.js` or a subfolder.
-- ZetoEngine2D uses Matter.js for physics when available. You can include it in your project by including the `matter.js` file before `zeto.js`. ZetoEngine2D uses version 0.19.0 and future versions may also work, but are not tested. If Matter.js is not present, the engine still works with a lightweight deterministic fallback physics layer for basic circle and box bodies, using a Matter-like `Body`/`Bodies` compatibility API.
+- ZetoEngine2D uses Matter.js for physics when available. You can include it in your project by including the `matter.js` file before `zeto.js`. ZetoEngine2D uses version 0.19.0 and future versions may also work, but are not tested. If Matter.js is not present, the engine still works with a lightweight deterministic fallback physics layer for basic circle and box bodies, using a Matter-like `Body`/`Bodies` compatibility API. The fallback physics simulation advances in fixed 16ms frame steps per engine update call for strict repeatability.
 - ZetoEngine2D will load any game files relative to the location of `zeto.js`. This means that if you have a file in a subfolder, you can include it in your game by using the path relative to `zeto.js`.
 - Your HTML file should include a canvas element with the id `canvas`. This is where the game will be rendered. You can also include an optional `canvas` parameter in the `new ZetoEngine()` call to specify a different canvas id.
 - The following is an HTML template for your game. You can copy and paste this into your project and modify it as needed. This template loads the engine and the game files. The engine is started with the `new ZetoEngine()` call. The `moduleName` parameter is the name of the module that contains the game code, relative to the location of `zeto.js`. In this case, ZetoEngine2D would look for a file inside `/js/game/` called `main.js`.
@@ -758,6 +758,7 @@ The following options are available when creating a body:
     - **box.halfHeight** The half height of the box
 - **options.resolution = 10** The number of sides to use when creating a circle
 - **options.isSensor = false** If the object is a sensor
+- **options.radialResponseStrength = 0** For box bodies only, applies a radial push force to the other body on collision `began` phase. Set to a positive number to enable.
 
 If the `shape` property is set, the `radius` property is ignored. The `shape` property can be a list of vertices. The `filter` property is an object that contains the collision filter properties. These properties are passed to Matter.js when creating the object.body.
 
@@ -770,7 +771,7 @@ After `addBody` is called, the object will have a `body` property that contains 
 - **object.body.y** The y position of the body
 - **object.body.rotation** The rotation of the body in radians
 - **object.body.isSensor = false** If the body is a sensor
-- **object.body.matterBody** The Matter.js body object
+- **object.body.libBody** The Matter.js body object
 
 And the following functions are available in the body object:
 
@@ -783,7 +784,7 @@ And the following functions are available in the body object:
 - **object.body.setMass(mass)** Sets the mass of the body
 - **object.body.getMass()** Returns the mass of the body
 
-You can still do anything you want with the Matter.js body object. The `matterBody` property contains the Matter.js body object. Most of these functions and properties are just wrappers for the Matter.js body object. If you are familiar with Solar2D, the main difference is that body properties are accessed through the `object.body` property instead of the `object` property.
+You can still do anything you want with the Matter.js body object. The `libBody` property contains the Matter.js body object. Most of these functions and properties are just wrappers for the Matter.js body object. If you are familiar with Solar2D, the main difference is that body properties are accessed through the `object.body` property instead of the `object` property.
 
 Available body and engine listeners are:
 

@@ -167,7 +167,7 @@ class ZetoEngineObject extends ZetoEventObject {
 		var newOffset = (value - 0.5) * this.bounds.local.width;
 		if (this.body) {
 			var offsetDiff = newOffset + this.internal.anchorOffsetX;
-			libBody.translate(this.body.matterBody, { x: -offsetDiff, y: 0 });
+			libBody.translate(this.body.libBody, { x: -offsetDiff, y: 0 });
 			this.body.internal.offsetX += offsetDiff;
 		}
 		this.internal.anchorOffsetX = -newOffset;
@@ -178,7 +178,7 @@ class ZetoEngineObject extends ZetoEventObject {
 		var newOffset = (value - 0.5) * this.bounds.local.height;
 		if (this.body) {
 			var offsetDiff = newOffset + this.internal.anchorOffsetY;
-			libBody.translate(this.body.matterBody, { x: 0, y: -offsetDiff });
+			libBody.translate(this.body.libBody, { x: 0, y: -offsetDiff });
 			this.body.internal.offsetY += offsetDiff;
 		}
 		this.internal.anchorOffsetY = -newOffset;
